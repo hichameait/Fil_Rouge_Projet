@@ -312,3 +312,11 @@ header {
         gap: 1rem;
     }
 }
+
+.form-p2{
+    font-size: 0.595rem;
+    color: #41415a;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    text-decoration-line: none;
+}
