@@ -40,5 +40,33 @@
             <a href="forgot-password.php" class="form-p forgot-password">Mot de passe oublié?</a>
         </form>
     </section>
+   <footer class="main-footer">
+    <div class="footer-container">
+        <div class="upline">
+            <div class="logo">
+                <a href="../index.php">
+                    <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
+                </a>
+            </div>
+            <div class="icons">
+                <ul id="sc-icons">
+                    <li><a href="#"><img src="../assets/icons/linkedin.svg" alt="LinkedIn"></a></li>
+                    <li><a href="#"><img src="../assets/icons/instagram.svg" alt="Instagram"></a></li>
+                    <li><a href="#"><img src="../assets/icons/x.svg" alt="X.com"></a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="downline">
+            <div class="copyright">
+                <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
+            </div>
+            <div class="terms-list">
+                <a href="./index.php">Termes et conditions</a>
+                <a href="./index.php">Politique de confidentialité</a>
+            </div>
+        </div>
+    </div>
+</footer>
 </body>
 </html>
