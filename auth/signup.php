@@ -1,3 +1,47 @@
+<?php
+include("../config.php");
+
+$erro_name = $erro_email = $error_pass = "";
+
+if (isset($_POST["signup"])) {
+
+    if (empty($_POST["username"])) {
+        $erro_name = "<p style='color:red;'>le nom est obligatoir</p>";
+    } else {
+        $name = htmlspecialchars($_POST["username"]);
+    }
+
+    if (empty($_POST["email"])) {
+        $erro_email = "<p style='color:red;'>le email est obligatoir</p>";
+    } else {
+        $email = htmlspecialchars($_POST["email"]);
+    }
+
+    if (empty($_POST["password"])) {
+        $error_pass = "<p style='color:red;'>mot de pass est obligatoir</p>";
+    } elseif (strlen($_POST["password"]) < 8) {
+        $error_pass = "<p style='color:red;'>le mot de pass au moins 8 caractéres</p>";
+    } else {
+        $passw = htmlspecialchars($_POST["password"]);
+    }
+
+    if (!empty($_POST["username"]) || !empty($_POST["email"]) || !empty($_POST["password"])) {
+        try {
+            $sql = "INSERT INTO Dentist (nom, email, mot_de_pass) VALUES (:nom, :email, :motpass)";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                ":nom" => $name,
+                ":email" => $email,
+                ":motpass" => $passw
+            ]);
+            header('Location: index.php');
+        } catch (PDOException $er) {
+            echo ("error : $er");
+        }
+    }
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +88,7 @@
                 <p class="form-p">Confirmer le Mot de Passe</p>
                 <input type="password" id="co-password" name="co-password" class="inputs" required>
             </label>
-            <button type="submit" class="button-form">Créer un compte</button>
+            <button type="submit" class="button-form" name="signup">Créer un compte</button>
             <a href="#" class="form-p2"> En vous inscrivant, vous acceptez <u>les Conditions d'utilisation</u> et <u>la Politique de confidentialité</u> de DentCare.</a>
         </form>
     </section>

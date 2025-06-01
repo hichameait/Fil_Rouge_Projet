@@ -1,3 +1,43 @@
+<?php
+session_start();
+
+include("../config.php");
+$erro_login = "";
+
+if (isset($_POST["login"])) {
+    if (!empty($_POST["email"] || !empty($_POST["password"]))) {
+
+        $email = htmlspecialchars($_POST['email']);
+        $passw = htmlspecialchars($_POST['password']);
+
+        $sql = "SELECT mot_de_pass FROM utilisateurs WHERE email = :email";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([':email' => $email]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result && password_verify($passw, $result['mot_de_pass'])) {
+
+            $sql = "SELECT * FROM utilisateurs WHERE email = :email";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([':email' => $email]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $_SESSION['email'] = $email;
+            $_SESSION['user_id'] = $res['id'];
+            $_SESSION['name'] = $res['nom'];
+
+            header("location: index.php");
+
+            exit();
+        } else {
+            $erro_login = "Email ou mot de passe incorrects";
+        }
+    } else {
+        $erro_login = "Email ou mot de pass incorrects";
+    }
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +77,7 @@
                 <input type="password" id="password" name="password" class="inputs" required>
             </label>
             <button type="submit" class="button-form">Se connecter</button>
-            <a href="forgot-password.php" class="form-p forgot-password">Mot de passe oublié?</a>
+            <a href="#" class="form-p forgot-password">Mot de passe oublié?</a>
         </form>
     </section>
    <footer class="main-footer">
