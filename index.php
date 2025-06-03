@@ -7,7 +7,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=1440, maximum-scale=1.0">
-
+        <link rel="stylesheet" href="./assets/css/home.css">
     </head>
 
 <body style="margin: 0px; background: rgb(255, 255, 255); overflow-x: hidden;" dark-scroll=""><input type="hidden"
