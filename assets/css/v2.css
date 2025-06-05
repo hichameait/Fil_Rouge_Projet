@@ -22,6 +22,7 @@
   --white: #ffffff;
   --white-2: #ffffff01;
   --zanah: #d7ecdf;
+  --bg-mozer: #f9f9f9;
 
   --font-size-m: 14.8px;
   --font-size-s: 14.6px;
@@ -85,6 +86,35 @@ header {
   box-shadow: 0px 1px 4px -1px #1e1f2561;
 }
 
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.hamburger span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--eerie-black);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+}
+
 @media screen and (max-width: 768px) {
   header {
     padding: 15px;
@@ -107,13 +137,84 @@ header {
   #nav-btn {
     padding: 6px 12px;
   }
+
+  .head-sc2 p {
+    width: 70%;
+  }
+
+  .sc2-container {
+    padding: 0 0.5rem !important;
+  }
+
+  .payment-section {
+    width: 95%;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .payment-header {
+    max-width: 100% !important;
+    text-align: center;
+  }
+
+  .icon-title {
+    justify-content: center;
+  }
+
+  .payment-list {
+    width: 100%;
+  }
+
+  .payment-item {
+    padding: 0.75rem;
+  }
+
+  .name {
+    margin-right: 15px;
+  }
+
+  .comment-1 {
+    width: 95%;
+    padding: 2rem;
+  }
+
+  .comment-1 p {
+    font-size: 20px;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .list {
+    position: fixed;
+    top: 80px;
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 80px);
+    background-color: var(--white);
+    transition: 0.3s ease;
+    z-index: 1000;
+  }
+
+  .list.active {
+    left: 0;
+  }
+
+  #list-menu {
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0;
+    gap: 1.5rem;
+  }
 }
 
 @media screen and (max-width: 480px) {
   header {
-    padding: 10px;
-    flex-direction: column;
-    gap: 15px;
+    padding: 11px;
+    flex-direction: row;
+    gap: 35px;
   }
 
   .logo img {
@@ -141,6 +242,66 @@ header {
     width: 100%;
     padding: 8px 0;
   }
+
+  .head-sc2 h1 {
+    font-size: x-large;
+    text-align: center;
+  }
+
+  .head-sc2 p {
+    width: 90%;
+    font-size: var(--font-size-xxxs);
+  }
+
+  .payment-section {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .payment-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .date {
+    width: auto;
+    margin-right: 1rem;
+  }
+
+  .name {
+    width: 100%;
+    margin-right: 0;
+    order: -1;
+  }
+
+  .status {
+    margin-right: 0;
+  }
+
+  .amount {
+    min-width: auto;
+  }
+
+  .comment-1 {
+    width: 100%;
+    padding: 1.5rem;
+  }
+
+  .comment-1 p {
+    font-size: 16px;
+  }
+
+  .icon-autor {
+    gap: 10px;
+  }
+
+  .hd-icons h5 {
+    font-size: var(--font-size-xxs);
+  }
+
+  .hd-icons p {
+    font-size: var(--font-size-xxxs);
+  }
 }
 
 @media screen and (max-width: 320px) {
@@ -156,6 +317,50 @@ header {
   #list-menu li {
     font-size: var(--font-size-xxs);
   }
+
+  .head-sc2 h1 {
+    font-size: large;
+  }
+
+  .payment-section {
+    padding: 0.75rem;
+  }
+
+  .icon-title h2 {
+    font-size: 0.75rem;
+  }
+
+  .payment-description {
+    font-size: 0.75rem;
+  }
+
+  .payment-item {
+    padding: 0.5rem;
+  }
+
+  .date, 
+  .name, 
+  .amount {
+    font-size: 0.75rem;
+  }
+
+  .status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .comment-1 {
+    padding: 1rem;
+  }
+
+  .comment-1 p {
+    font-size: 14px;
+  }
+
+  .icon-autor img {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 main .hero {
@@ -163,7 +368,7 @@ main .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 70vh;
+  /* height: 70vh; */
   gap: 30px;
 }
 
@@ -266,6 +471,96 @@ main .hero {
   #dev_line {
     width: 90%;
   }
+
+.main-2 {
+    margin-top: 10vh;
+    padding: 2rem 1rem;
+}
+
+@media screen and (max-width: 768px) {
+    .img-dash {
+        max-width: 90%;
+        margin: 1.5rem auto;
+    }
+
+    .main-2 {
+        margin-top: 6vh;
+        padding: 1.5rem 0.5rem;
+    }
+
+    .payment-section {
+        margin: 0 !important;
+        width: 100% !important;
+        flex-direction: column !important;
+    }
+
+    .payment-item {
+        padding: 0.85rem 0.7rem !important;
+    }
+
+    .date {
+        display: none;
+    }
+
+    .name {
+        margin-right: 0.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .img-dash {
+        max-width: 100%;
+        margin: 1rem auto;
+    }
+
+    .main-2 {
+        margin-top: 4vh;
+        padding: 1rem 0.25rem;
+    }
+
+    .payment-item {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .payment-item .name,
+    .payment-item .amount,
+    .payment-item .status {
+        font-size: 0.7rem;
+    }
+
+    .status {
+        padding: 0.2rem 0.4rem !important;
+        margin-right: 0.5rem !important;
+    }
+
+    .amount {
+        min-width: 80px !important;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .img-dash {
+        margin: 0.5rem auto;
+    }
+
+    .main-2 {
+        margin-top: 3vh;
+        padding: 0.75rem 0.125rem;
+    }
+
+    .payment-item {
+        padding: 0.4rem 0.2rem;
+    }
+
+    .status {
+        padding: 0.15rem 0.3rem;
+        margin-right: 0.25rem;
+    }
+
+    .amount {
+        min-width: 70px;
+    }
+}
 }
 
 @media screen and (max-width: 480px) {
@@ -336,4 +631,184 @@ main .hero {
     font-size: 12px;
     line-height: 20px;
   }
+}
+
+.main-2 {
+  margin-top: 10vh;
+}
+.head-sc2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.head-sc2 h1 {
+  font-size: xx-large;
+  font-weight: 500;
+  text-align: center;
+}
+.head-sc2 h1 span {
+  color: var(--blue);
+}
+.head-sc2 p {
+  text-align: center;
+  width: 35%;
+  font-size: var(--font-size-xxs);
+  color: var(--gun-powder);
+}
+
+.sc2-container {
+  width: 100%;
+  /* height: 90vh; */
+  margin-top: 8vh;
+  background-color: var(--bg-mozer);
+  padding: 0 1rem;
+}
+
+.payment-section {
+  width: 90%;
+  /* border: 1px solid var(--eerie-black-2); */
+  border-top: 1px solid var(--eerie-black-2);
+  border-left: 1px solid var(--eerie-black-2);
+  border-right: 1px solid var(--eerie-black-2);
+  border-bottom: none;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  /* border-radius: 10px; */
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-around;
+  background-color: var(--white);
+}
+
+.payment-header {
+  max-width: 300px;
+}
+
+.icon-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.icon-title h2 {
+  color: #2679f3;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.44px;
+}
+
+.payment-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.payment-description {
+  color: #202020;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.payment-list {
+  background: white;
+  border-radius: 9px;
+  overflow: hidden;
+  box-shadow: 0px 1px 2px #100c0c1a, 0px 0px 2px #100c0c1a,
+    0px 8px 12px -4px #100c0c14;
+}
+
+.payment-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.payment-item:last-child {
+  border-bottom: none;
+}
+
+.date {
+  color: #757575;
+  font-size: 0.75rem;
+  width: 100px;
+}
+
+.name {
+  flex: 1;
+  color: #202020;
+  font-size: 0.875rem;
+  margin-right: 30px;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-right: 1rem;
+}
+
+.status.received {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.amount {
+  font-weight: 500;
+  font-size: 0.875rem;
+  min-width: 130px;
+  text-align: right;
+}
+
+.amount.positive {
+  color: #2e7d32;
+}
+
+.comment-1 {
+  width: 90%;
+  background-color: var(--athens-gray);
+  display: flex;
+  flex-direction: column;
+  padding: 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+.comment-1 p {
+  color: var(--eerie-black);
+  font-size: 25px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.icon-autor {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+}
+.hd-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.hd-icons h5 {
+  font-size: medium;
+  font-weight: 500;
+}
+.hd-icons p {
+  font-size: var(--font-size-xxs);
 }
