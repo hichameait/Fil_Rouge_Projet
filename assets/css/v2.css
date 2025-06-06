@@ -87,32 +87,32 @@ header {
 }
 
 .hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 6px;
-    cursor: pointer;
-    padding: 5px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  padding: 5px;
 }
 
 .hamburger span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background-color: var(--eerie-black);
-    border-radius: 3px;
-    transition: all 0.3s ease;
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: var(--eerie-black);
+  border-radius: 3px;
+  transition: all 0.3s ease;
 }
 
 .hamburger.active span:nth-child(1) {
-    transform: translateY(9px) rotate(45deg);
+  transform: translateY(9px) rotate(45deg);
 }
 
 .hamburger.active span:nth-child(2) {
-    opacity: 0;
+  opacity: 0;
 }
 
 .hamburger.active span:nth-child(3) {
-    transform: translateY(-9px) rotate(-45deg);
+  transform: translateY(-9px) rotate(-45deg);
 }
 
 @media screen and (max-width: 768px) {
@@ -338,8 +338,8 @@ header {
     padding: 0.5rem;
   }
 
-  .date, 
-  .name, 
+  .date,
+  .name,
   .amount {
     font-size: 0.75rem;
   }
@@ -439,7 +439,7 @@ main .hero {
 @media screen and (max-width: 768px) {
   main .hero {
     margin-top: 30px;
-    height: 60vh;
+    /* height: 60vh; */
     gap: 25px;
   }
 
@@ -472,95 +472,95 @@ main .hero {
     width: 90%;
   }
 
-.main-2 {
+  .main-2 {
     margin-top: 10vh;
     padding: 2rem 1rem;
-}
+  }
 
-@media screen and (max-width: 768px) {
+  @media screen and (max-width: 768px) {
     .img-dash {
-        max-width: 90%;
-        margin: 1.5rem auto;
+      max-width: 90%;
+      margin: 1.5rem auto;
     }
 
     .main-2 {
-        margin-top: 6vh;
-        padding: 1.5rem 0.5rem;
+      margin-top: 6vh;
+      padding: 1.5rem 0.5rem;
     }
 
     .payment-section {
-        margin: 0 !important;
-        width: 100% !important;
-        flex-direction: column !important;
+      margin: 0 !important;
+      width: 100% !important;
+      flex-direction: column !important;
     }
 
     .payment-item {
-        padding: 0.85rem 0.7rem !important;
+      padding: 0.85rem 0.7rem !important;
     }
 
     .date {
-        display: none;
+      display: none;
     }
 
     .name {
-        margin-right: 0.5rem;
+      margin-right: 0.5rem;
     }
-}
+  }
 
-@media screen and (max-width: 480px) {
+  @media screen and (max-width: 480px) {
     .img-dash {
-        max-width: 100%;
-        margin: 1rem auto;
+      max-width: 100%;
+      margin: 1rem auto;
     }
 
     .main-2 {
-        margin-top: 4vh;
-        padding: 1rem 0.25rem;
+      margin-top: 4vh;
+      padding: 1rem 0.25rem;
     }
 
     .payment-item {
-        padding: 0.5rem 0.25rem;
+      padding: 0.5rem 0.25rem;
     }
 
     .payment-item .name,
     .payment-item .amount,
     .payment-item .status {
-        font-size: 0.7rem;
+      font-size: 0.7rem;
     }
 
     .status {
-        padding: 0.2rem 0.4rem !important;
-        margin-right: 0.5rem !important;
+      padding: 0.2rem 0.4rem !important;
+      margin-right: 0.5rem !important;
     }
 
     .amount {
-        min-width: 80px !important;
+      min-width: 80px !important;
     }
-}
+  }
 
-@media screen and (max-width: 320px) {
+  @media screen and (max-width: 320px) {
     .img-dash {
-        margin: 0.5rem auto;
+      margin: 0.5rem auto;
     }
 
     .main-2 {
-        margin-top: 3vh;
-        padding: 0.75rem 0.125rem;
+      margin-top: 3vh;
+      padding: 0.75rem 0.125rem;
     }
 
     .payment-item {
-        padding: 0.4rem 0.2rem;
+      padding: 0.4rem 0.2rem;
     }
 
     .status {
-        padding: 0.15rem 0.3rem;
-        margin-right: 0.25rem;
+      padding: 0.15rem 0.3rem;
+      margin-right: 0.25rem;
     }
 
     .amount {
-        min-width: 70px;
+      min-width: 70px;
     }
-}
+  }
 }
 
 @media screen and (max-width: 480px) {
@@ -811,4 +811,288 @@ main .hero {
 }
 .hd-icons p {
   font-size: var(--font-size-xxs);
+}
+
+/* ///////// */
+.main-3 {
+  width: 100%;
+  background-color: var(--bg-mozer);
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.mine3-container {
+  width: 90%;
+  display: flex;
+  max-width: 1200px;
+  padding: 0rem 4.5rem;
+  background-color: var(--white);
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.payment-container {
+  width: 50%;
+  background-color: var(--white);
+  padding: 3rem;
+  border-right: 1px solid var(--athens-gray);
+}
+.invoice-container {
+  width: 50%;
+  padding: 3rem;
+  background-color: var(--white);
+}
+.section-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section-header {
+  max-width: 400px;
+  text-align: center;
+}
+
+.icon-title {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+.icon-title img {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-title h2 {
+  color: var(--blue);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.44px;
+}
+
+.section-description {
+  color: var(--eerie-black);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.payment-row {
+  background-color: var(--white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--athens-gray);
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px #0f0c0c1a, 0px 0px 2px #0f0c0c1a,
+    0px 8px 12px -4px #0f0c0c14;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.invoices-list {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px #0f0c0c1a, 0px 0px 2px #0f0c0c1a,
+    0px 8px 12px -4px #0f0c0c14;
+}
+
+.invoice-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--athens-gray);
+}
+
+.status-badge.sent {
+  background-color: var(--pattens-blue);
+  color: var(--blue);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+@media screen and (max-width: 1024px) {
+  .mine3-container {
+    width: 95%;
+    padding: 0 2rem;
+  }
+
+  .section-description {
+    font-size: 0.8rem;
+  }
+
+  .icon-title h2 {
+    font-size: 0.8rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .main-3 {
+    padding: 2rem 1rem;
+  }
+
+  .mine3-container {
+    width: 100%;
+    padding: 0 1rem;
+    flex-direction: column;
+  }
+
+  .payment-container,
+  .invoice-container {
+    width: 100%;
+    padding: 2rem 1rem;
+  }
+
+  .payment-container {
+    border-right: none;
+    border-bottom: 1px solid var(--athens-gray);
+  }
+
+  .section-header {
+    max-width: 100%;
+  }
+
+  .user-details .name {
+    font-size: 0.85rem;
+  }
+
+  .user-details .time {
+    font-size: 0.75rem;
+  }
+
+  .amount {
+    font-size: 0.85rem;
+  }
+
+  .invoice-status span {
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .main-3 {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .mine3-container {
+    padding: 0 0.5rem;
+  }
+
+  .payment-container,
+  .invoice-container {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .icon-title {
+    gap: 0.5rem;
+  }
+
+  .icon-title img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-title h2 {
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+  }
+
+  .section-description {
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  .payment-row,
+  .invoice-item {
+    padding: 0.75rem;
+  }
+
+  .user-details .name {
+    font-size: 0.75rem;
+  }
+
+  .user-details .time {
+    font-size: 0.65rem;
+  }
+
+  .amount {
+    font-size: 0.75rem;
+  }
+
+  .invoice-status span {
+    font-size: 0.75rem;
+  }
+
+  .status-badge.sent {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .avatar {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .payment-container,
+  .invoice-container {
+    padding: 1rem 0.25rem;
+  }
+
+  .icon-title h2 {
+    font-size: 0.65rem;
+  }
+
+  .section-description {
+    font-size: 0.65rem;
+  }
+
+  .user-details .name {
+    font-size: 0.7rem;
+  }
+
+  .user-details .time {
+    font-size: 0.6rem;
+  }
+
+  .amount {
+    font-size: 0.7rem;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .status-badge.sent {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+  }
 }
