@@ -125,85 +125,117 @@
         <section class="main-3">
             <div class="mine3-container">
                 <div class="payment-container">
-                <div class="payments-list">
-                    <div class="payment-row">
-                        <div class="user-info">
-                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-10@2x.png"
-                                alt="Hichame" class="avatar">
-                            <div class="user-details">
-                                <span class="name">Hichame</span>
-                                <span class="time">4:17PM</span>
+                    <div class="payments-list">
+                        <div class="payment-row">
+                            <div class="user-info">
+                                <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-10@2x.png"
+                                    alt="Hichame" class="avatar">
+                                <div class="user-details">
+                                    <span class="name">Hichame</span>
+                                    <span class="time">4:17PM</span>
+                                </div>
                             </div>
+                            <span class="amount positive">+200 MAD</span>
                         </div>
-                        <span class="amount positive">+200 MAD</span>
-                    </div>
 
-                    <div class="payment-row">
-                        <div class="user-info">
-                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-11@2x.png"
-                                alt="Ahlame" class="avatar">
-                            <div class="user-details">
-                                <span class="name">Ahlame</span>
-                                <span class="time">4:17PM</span>
+                        <div class="payment-row">
+                            <div class="user-info">
+                                <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-11@2x.png"
+                                    alt="Ahlame" class="avatar">
+                                <div class="user-details">
+                                    <span class="name">Ahlame</span>
+                                    <span class="time">4:17PM</span>
+                                </div>
                             </div>
+                            <span class="amount positive">+200 MAD</span>
                         </div>
-                        <span class="amount positive">+200 MAD</span>
+                    </div>
+                    <div class="section-header">
+                        <div class="icon-title">
+                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-40.svg"
+                                alt="Sync Icon" class="sync-icon">
+                            <h2>PAIEMENTS SYNCHRONISÉS SANS EFFORT</h2>
+                        </div>
+                        <p class="section-description">
+                            Chaque paiement reçu est automatiquement identifié et associé à la bonne facture
+                            plus besoin de vérifier manuellement.
+                        </p>
                     </div>
                 </div>
-                <div class="section-header">
-                    <div class="icon-title">
-                        <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-40.svg"
-                            alt="Sync Icon" class="sync-icon">
-                        <h2>PAIEMENTS SYNCHRONISÉS SANS EFFORT</h2>
-                    </div>
-                    <p class="section-description">
-                        Chaque paiement reçu est automatiquement identifié et associé à la bonne facture
-                        plus besoin de vérifier manuellement.
-                    </p>
-                </div>
-            </div>
-            <div class="invoice-container">
-                <div class="invoices-list">
-                    <div class="invoice-item">
-                        <div class="invoice-status">
-                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
-                                alt="Check Icon" class="check-icon">
-                            <span>Facture du Hicham</span>
+                <div class="invoice-container">
+                    <div class="invoices-list">
+                        <div class="invoice-item">
+                            <div class="invoice-status">
+                                <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
+                                    alt="Check Icon" class="check-icon">
+                                <span>Facture du Hicham</span>
+                            </div>
+                            <span class="status-badge sent">envoyé</span>
                         </div>
-                        <span class="status-badge sent">envoyé</span>
-                    </div>
 
-                    <div class="invoice-item">
-                        <div class="invoice-status">
-                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
-                                alt="Check Icon" class="check-icon">
-                            <span>Facture du Adam</span>
+                        <div class="invoice-item">
+                            <div class="invoice-status">
+                                <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
+                                    alt="Check Icon" class="check-icon">
+                                <span>Facture du Adam</span>
+                            </div>
+                            <span class="status-badge sent">envoyé</span>
                         </div>
-                        <span class="status-badge sent">envoyé</span>
-                    </div>
 
-                    <div class="invoice-item">
-                        <div class="invoice-status">
-                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
-                                alt="Check Icon" class="check-icon">
-                            <span>Facture du Ahlam</span>
+                        <div class="invoice-item">
+                            <div class="invoice-status">
+                                <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-41.svg"
+                                    alt="Check Icon" class="check-icon">
+                                <span>Facture du Ahlam</span>
+                            </div>
+                            <span class="status-badge sent">envoyé</span>
                         </div>
-                        <span class="status-badge sent">envoyé</span>
+                    </div>
+                    <div class="section-header">
+                        <div class="icon-title">
+                            <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-45.svg"
+                                alt="Invoice Icon" class="invoice-icon">
+                            <h2>FACTURATION AUTOMATISÉE, SANS OUBLIS</h2>
+                        </div>
+                        <p class="section-description">
+                            Créez, envoyez et suivez toutes vos factures en un clic.
+                            DentalCare s'occupe du reste, même les relances.
+                        </p>
                     </div>
                 </div>
-                <div class="section-header">
-                    <div class="icon-title">
-                        <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-45.svg"
-                            alt="Invoice Icon" class="invoice-icon">
-                        <h2>FACTURATION AUTOMATISÉE, SANS OUBLIS</h2>
-                    </div>
-                    <p class="section-description">
-                        Créez, envoyez et suivez toutes vos factures en un clic.
-                        DentalCare s'occupe du reste, même les relances.
-                    </p>
+            </div>
+        </section>
+        <section class="main-4">
+            <div class="header-sc4">
+                <h1>Ne ratez plus aucun <span>rendez-vous</span></h1>
+                <p>Des rappels automatiques par WhatsApp, SMS et Email sont envoyés à vos patients
+                    avant chaque
+                    rendez-vous — pour éviter les absences et garder le contrôle.</p>
+            </div>
+        </section>
+        <section class="main-5">
+            <div class="remainder-co">
+                <div class="image-left">
+                    <img src="./assets/rpl-msg.svg" alt="">
+                </div>
+                <div class="image-right">
+                    <img src="./assets/rpl-email.svg" alt="">
                 </div>
             </div>
-            </div>
+            <div class="comment-1">
+                    <p>“Avant, je gérais tout avec des
+                        fichiers Excel et de l’aide comptable, mais c’était lent et compliqué. Maintenant, cette
+                        plateforme me fait gagner un temps fou en automatisant mes rendez-vous et mes
+                        paiements.”</p>
+                    <div class="icon-autor">
+                        <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/image@2x.png"
+                            alt="" width="60px" height="60px">
+                        <div class="hd-icons">
+                            <h5>Mehdi Azroual</h5>
+                            <p>Dentist Errachidia</p>
+                        </div>
+                    </div>
+                </div>
         </section>
     </main>
     <script src="./assets/js/main.js"></script>
