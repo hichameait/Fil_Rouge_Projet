@@ -223,21 +223,227 @@
                 </div>
             </div>
             <div class="comment-1">
-                    <p>“Avant, je gérais tout avec des
-                        fichiers Excel et de l’aide comptable, mais c’était lent et compliqué. Maintenant, cette
-                        plateforme me fait gagner un temps fou en automatisant mes rendez-vous et mes
-                        paiements.”</p>
-                    <div class="icon-autor">
-                        <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/image@2x.png"
-                            alt="" width="60px" height="60px">
-                        <div class="hd-icons">
-                            <h5>Mehdi Azroual</h5>
-                            <p>Dentist Errachidia</p>
-                        </div>
+                <p>“Avant, je gérais tout avec des
+                    fichiers Excel et de l’aide comptable, mais c’était lent et compliqué. Maintenant, cette
+                    plateforme me fait gagner un temps fou en automatisant mes rendez-vous et mes
+                    paiements.”</p>
+                <div class="icon-autor">
+                    <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/image@2x.png"
+                        alt="" width="60px" height="60px">
+                    <div class="hd-icons">
+                        <h5>Mehdi Azroual</h5>
+                        <p>Dentist Errachidia</p>
                     </div>
                 </div>
+            </div>
+        </section>
+        <section class="main-6">
+            <div class="head-m6">
+                <h1>Pensé pour <span>les dentistes</span></h1>
+                <p id="m6-subt">SmileDesk a été conçu pour les professionnels du dentaire, pas pour les comptables.
+                    Plus de paperasse, plus de stress, plus d’outils compliqués.
+                    Juste une plateforme simple, rapide et efficace qui facilite votre quotidien.</p>
+                <div class="starts">
+                    <img src="https://cdn.animaapp.com/projects/683cb56bcb1fa081be2f8b2c/releases/683cb689aa63b0519c365b09/img/component-1-15.svg"
+                        alt="" width="30px" height="30px">
+                    <p id="p1">4.8</p>
+                    <p id="p2">from 500+ founders</p>
+                </div>
+            </div>
+            <div class="tarifa">
+                <div class="head-tarifa">
+                    <h1>Tarification</h1>
+                    <p>Évolue selon vos besoins, pas selon vos dépenses.</p>
+                </div>
+                <div class="plans">
+                    <div class="text">
+                        <h2>SmileDesk Platforme</h2>
+                        <h3>All in One Dashboard</h3>
+                        <p>Ne ratez plus aucun rendez-vous</p>
+                    </div>
+                    <div class="plan-1">
+                        <div class="plan-header">
+                            <h3>Plan Essentiel</h3>
+                            <p>Idéal pour les dentistes indépendants qui veulent digitaliser les bases.</p>
+                            <div class="price">
+                                <h2>149 MAD</h2>
+                                <span>/ mois</span>
+                            </div>
+                        </div>
+                        <div class="features">
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Prise de rendez-vous en ligne</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Création et envoi de factures PDF</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Rappels automatiques</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Fiche patient (historique de soins)</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Stockage sécurisé des documents</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Impression de factures et ordonnances</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Tableau de bord simplifié</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-blue.svg" alt="check">
+                                <span>Support client en français & darija</span>
+                            </div>
+                        </div>
+                        <button class="plan-btn">Essai gratuit 7 jours</button>
+                    </div>
+                    <div class="plan-2">
+                        <div class="plan-header">
+                            <h3>Plan Pro</h3>
+                            <p>Pour les cabinets qui veulent automatiser davantage et suivre leurs performances.</p>
+                            <div class="price">
+                                <h2>249 MAD</h2>
+                                <span>/ mois</span>
+                            </div>
+                        </div>
+                        <div class="features">
+                            <p class="pro-label">Everything included in Startup, plus:</p>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Gestion avancée du calendrier</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Suivi des paiements</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Statistiques détaillées</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Suggestions intelligentes</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Gestion des tarifs et remises</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Accès multi-utilisateurs</span>
+                            </div>
+                            <div class="feature-item">
+                                <img src="./assets/check-gray.svg" alt="check">
+                                <span>Export Excel / PDF complet</span>
+                            </div>
+                        </div>
+                        <button class="plan-btn pro">Essayer le Plan Pro</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="faqs">
+            <h2>Questions fréquemment posées</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Est-ce que je dois installer un logiciel sur mon ordinateur</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Non, SmileDesk est une application web - il suffit d'avoir un navigateur internet et une connexion pour y accéder depuis n'importe quel appareil.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Est-ce que je peux tester SmileDesk gratuitement ?</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, vous pouvez essayer toutes les fonctionnalités pendant 7 jours sans engagement.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Puis-je envoyer des factures à mes patients ?</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, vous pouvez créer et envoyer des factures professionnelles en quelques clics.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Est-ce que les patients reçoivent des rappels avant leur rendez-vous ?</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, des rappels automatiques sont envoyés par SMS, WhatsApp et email.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Y a-t-il un tableau de bord pour suivre mon activité ?</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, vous avez accès à un tableau de bord complet avec des statistiques détaillées.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Mes données et celles de mes patients sont-elles sécurisées ?</span>
+                        <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, toutes les données sont cryptées et stockées de manière sécurisée.</p>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
+    <footer class="main-footer">
+    <div class="footer-container">
+        <div class="upline">
+            <div class="logo">
+                <a href="../index.php">
+                    <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
+                </a>
+            </div>
+            <div class="icons">
+                <ul id="sc-icons">
+                    <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/4f2af5d116/linkedin.svg" alt="LinkedIn"></a></li>
+                    <li><a href="#"><img src="https://www.svgrepo.com/show/452229/instagram-1.svg" alt="Instagram" width="16px" height="16px"></a></li>
+                    <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/0001a8fb35/x.svg" alt="X.com"></a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="downline">
+            <div class="copyright">
+                <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
+            </div>
+            <div class="terms-list">
+                <a href="./index.php">Termes et conditions</a>
+                <a href="./index.php">Politique de confidentialité</a>
+            </div>
+        </div>
+    </div>
+</footer>
     <script src="./assets/js/main.js"></script>
 </body>
 
