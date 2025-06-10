@@ -1,10 +1,8 @@
 <?php
-require_once 'includes/auth.php';
+require_once '../dashboard/includes/auth.php';
 
-// Start session
 session_start();
 
-// Clear all session variables
 $_SESSION = [];
 
 // Destroy the session

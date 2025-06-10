@@ -3,7 +3,6 @@ session_start();
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
-// Check authentication
 if (!isLoggedIn()) {
     header('Location: ../auth/login.php');
     exit;

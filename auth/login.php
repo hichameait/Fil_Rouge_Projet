@@ -57,7 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form action="" method="post" class="formulaire">
             <h1 class="form-h1">Se connecter</h1>
             <?php if ($erro_login): ?>
-                <div class="form-error"><?= htmlspecialchars($erro_login) ?></div>
+                <div class="form-error" style="
+                    background-color: #ff00001c;
+                    padding: 15px;
+                    color: red;
+                    border: 1px solid #ff000014;
+                    border-radius: 8px;
+                    text-align: center;
+                "><?= htmlspecialchars($erro_login) ?></div>
             <?php endif; ?>
             <label for="email">
                 <p class="form-p">Email</p>

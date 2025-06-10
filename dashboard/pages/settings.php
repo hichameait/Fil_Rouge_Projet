@@ -130,7 +130,7 @@ $working_hours = json_decode($clinic['working_hours'] ?? '{}', true);
                     </div>
                     <div>
                         <label for="clinic_website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                        <input type="url" id="clinic_website" name="clinic_website" value="<?= htmlspecialchars($clinic['website']) ?>"
+                        <input type="url" id="clinic_website" name="clinic_website" value="<?= htmlspecialchars($clinic['website'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>

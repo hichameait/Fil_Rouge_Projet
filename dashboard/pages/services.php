@@ -72,7 +72,6 @@ $services = fetchAll(
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tooth Specific</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -94,11 +93,11 @@ $services = fetchAll(
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 $<?= number_format($service['price'], 2) ?>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <!-- <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $service['requires_tooth_selection'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' ?>">
                                     <?= $service['requires_tooth_selection'] ? 'Yes' : 'No' ?>
                                 </span>
-                            </td>
+                            </td> -->
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button class="text-blue-600 hover:text-blue-900 mr-3 edit-service-btn"
                                         data-id="<?= $service['id'] ?>"
@@ -123,12 +122,12 @@ $services = fetchAll(
     </div>
 
     <!-- Tooth Chart for Service Selection -->
-    <div class="bg-white rounded-lg shadow-sm">
+    <!-- <div class="bg-white rounded-lg shadow-sm">
         <div class="p-6 border-b border-gray-200">
             <h3 class="text-lg font-semibold">Tooth Selection Chart</h3>
             <p class="text-sm text-gray-600">Used for tooth-specific procedures</p>
         </div>
-    </div>
+    </div> -->
 
     <!-- Edit Category Modal (hidden by default) -->
     <div id="editCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 hidden">
@@ -182,12 +181,12 @@ $services = fetchAll(
                     <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                     <input type="number" step="0.01" name="price" id="editServicePrice" class="w-full border border-gray-300 rounded-md px-3 py-2">
                 </div>
-                <div class="mb-3">
+                <!-- <div class="mb-3">
                     <label class="inline-flex items-center">
                         <input type="checkbox" name="tooth" id="editServiceTooth" class="form-checkbox">
                         <span class="ml-2 text-sm text-gray-700">Tooth Specific</span>
                     </label>
-                </div>
+                </div> -->
                 <div class="flex justify-end space-x-2">
                     <button type="button" id="cancelEditService" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
                     <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
