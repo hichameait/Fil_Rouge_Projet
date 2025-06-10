@@ -1,7 +1,7 @@
 <?php
-include("../config.php");
+require_once '../dashboard/config/database.php';
 
-$erro_name = $erro_email = $error_pass = "";
+$erro_name = $erro_email = $error_pass = $error_confirm = "";
 
 if (isset($_POST["signup"])) {
 
@@ -22,25 +22,30 @@ if (isset($_POST["signup"])) {
     } elseif (strlen($_POST["password"]) < 8) {
         $error_pass = "<p style='color:red;'>le mot de pass au moins 8 caractéres</p>";
     } else {
-        $passw = htmlspecialchars($_POST["password"]);
+        $passw = $_POST["password"];
     }
 
-    if (!empty($_POST["username"]) || !empty($_POST["email"]) || !empty($_POST["password"])) {
+    if ($_POST["password"] !== $_POST["co-password"]) {
+        $error_confirm = "<p style='color:red;'>Les mots de passe ne correspondent pas</p>";
+    }
+
+    if (empty($erro_name) && empty($erro_email) && empty($error_pass) && empty($error_confirm)) {
         try {
+            $hashed = password_hash($passw, PASSWORD_DEFAULT);
             $sql = "INSERT INTO Dentist (nom, email, mot_de_pass) VALUES (:nom, :email, :motpass)";
-            $stmt = $conn->prepare($sql);
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ":nom" => $name,
                 ":email" => $email,
-                ":motpass" => $passw
+                ":motpass" => $hashed
             ]);
-            header('Location: index.php');
+            header('Location: login.php');
+            exit;
         } catch (PDOException $er) {
             echo ("error : $er");
         }
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,6 +77,12 @@ if (isset($_POST["signup"])) {
     <section class="forms">
         <form action="" method="post" class="formulaire">
             <h1 class="form-h1">Commencer</h1>
+            <?php
+                echo $erro_name;
+                echo $erro_email;
+                echo $error_pass;
+                echo $error_confirm;
+            ?>
             <label for="email">
                 <p class="form-p">Email</p>
                 <input type="email" id="email" name="email" class="inputs" required>
