@@ -1,12 +1,13 @@
 <?php
-    session_start();
+session_start();
 
-    include("../config.php");
+require_once '../dashboard/config/database.php';
+require_once '../dashboard/includes/auth.php';
 
-    if (!isset($_SESSION["user_id"])) {
-        header("Location: login.php");
-        exit();
-    }
+if (isLoggedIn()) {
+    header('Location: ../dashboard/index.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

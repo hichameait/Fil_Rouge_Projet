@@ -1,21 +1,24 @@
 <?php
-    session_start();
+session_start();
 
-    include("../config.php");
+require_once '../dashboard/config/database.php';
+require_once '../dashboard/includes/auth.php';
 
-    if (!isset($_SESSION["user_id"])) {
-        header("Location: login.php");
-        exit();
-    }
+if (isLoggedIn()) {
+    header('Location: ../dashboard/index.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmileDesk - Checkout</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
+
 <body>
     <header>
         <div class="left-items">
@@ -53,7 +56,7 @@
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="address">
                         <p class="form-p">Address</p>
@@ -116,33 +119,34 @@
             </div>
         </section>
     </main>
-       <footer class="main-footer">
-    <div class="footer-container">
-        <div class="upline">
-            <div class="logo">
-                <a href="../index.php">
-                    <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
-                </a>
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="upline">
+                <div class="logo">
+                    <a href="../index.php">
+                        <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
+                    </a>
+                </div>
+                <div class="icons">
+                    <ul id="sc-icons">
+                        <li><a href="#"><img src="../assets/icons/linkedin.svg" alt="LinkedIn"></a></li>
+                        <li><a href="#"><img src="../assets/icons/instagram.svg" alt="Instagram"></a></li>
+                        <li><a href="#"><img src="../assets/icons/x.svg" alt="X.com"></a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="icons">
-                <ul id="sc-icons">
-                    <li><a href="#"><img src="../assets/icons/linkedin.svg" alt="LinkedIn"></a></li>
-                    <li><a href="#"><img src="../assets/icons/instagram.svg" alt="Instagram"></a></li>
-                    <li><a href="#"><img src="../assets/icons/x.svg" alt="X.com"></a></li>
-                </ul>
+            <hr>
+            <div class="downline">
+                <div class="copyright">
+                    <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
+                </div>
+                <div class="terms-list">
+                    <a href="./index.php">Termes et conditions</a>
+                    <a href="./index.php">Politique de confidentialité</a>
+                </div>
             </div>
         </div>
-        <hr>
-        <div class="downline">
-            <div class="copyright">
-                <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
-            </div>
-            <div class="terms-list">
-                <a href="./index.php">Termes et conditions</a>
-                <a href="./index.php">Politique de confidentialité</a>
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
 </body>
+
 </html>

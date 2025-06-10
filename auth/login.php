@@ -1,42 +1,30 @@
 <?php
 session_start();
 
-include("../config.php");
-$erro_login = "";
+require_once '../dashboard/config/database.php';
+require_once '../dashboard/includes/auth.php';
 
-if (isset($_POST["login"])) {
-    if (!empty($_POST["email"] || !empty($_POST["password"]))) {
-
-        $email = htmlspecialchars($_POST['email']);
-        $passw = htmlspecialchars($_POST['password']);
-
-        $sql = "SELECT mot_de_pass FROM utilisateurs WHERE email = :email";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([':email' => $email]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($result && password_verify($passw, $result['mot_de_pass'])) {
-
-            $sql = "SELECT * FROM utilisateurs WHERE email = :email";
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([':email' => $email]);
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $_SESSION['email'] = $email;
-            $_SESSION['user_id'] = $res['id'];
-            $_SESSION['name'] = $res['nom'];
-
-            header("location: index.php");
-
-            exit();
-        } else {
-            $erro_login = "Email ou mot de passe incorrects";
-        }
-    } else {
-        $erro_login = "Email ou mot de pass incorrects";
-    }
+if (isLoggedIn()) {
+    header('Location: ../dashboard/index.php');
+    exit;
 }
 
+$erro_login = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (empty($email) || empty($password)) {
+        $erro_login = 'Veuillez entrer votre email et votre mot de passe';
+    } else {
+        if (login($email, $password)) {
+            header('Location: ../dashboard/index.php');
+            exit;
+        } else {
+            $erro_login = 'Email ou mot de passe invalide';
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,9 +56,19 @@ if (isset($_POST["login"])) {
     <section class="forms">
         <form action="" method="post" class="formulaire">
             <h1 class="form-h1">Se connecter</h1>
+            <?php if ($erro_login): ?>
+                <div class="form-error" style="
+                    background-color: #ff00001c;
+                    padding: 15px;
+                    color: red;
+                    border: 1px solid #ff000014;
+                    border-radius: 8px;
+                    text-align: center;
+                "><?= htmlspecialchars($erro_login) ?></div>
+            <?php endif; ?>
             <label for="email">
                 <p class="form-p">Email</p>
-                <input type="email" id="email" name="email" class="inputs" required>
+                <input type="email" id="email" name="email" class="inputs" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
             </label>
             <label for="password">
                 <p class="form-p">Mot de passe</p>
