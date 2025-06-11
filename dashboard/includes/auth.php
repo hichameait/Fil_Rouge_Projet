@@ -1,16 +1,7 @@
 <?php
 function isLoggedIn() {
     // Check if user is logged in
-    if (!isset($_SESSION['user_id']) || !isset($_SESSION['clinic_id'])) {
-        return false;
-    }
-
-    // Validate session data
-    if (empty($_SESSION['user_id']) || empty($_SESSION['clinic_id'])) {
-        return false;
-    }
-
-    return true;
+    return isset($_SESSION['email']) && isset($_SESSION['auth']) && $_SESSION['auth'] === true;
 }
 
 function getCurrentUser() {
@@ -42,25 +33,30 @@ function debugSession() {
 }
 
 function login($email, $password) {
-    $user = fetchOne(
-        "SELECT * FROM users WHERE email = ? AND status = 'active'",
-        [$email]
-    );
-    
-    if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['clinic_id'] = $user['clinic_id'];
-        $_SESSION['role'] = $user['role'];
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Update last login
-        executeQuery(
-            "UPDATE users SET last_login = NOW() WHERE id = ?",
-            [$user['id']]
-        );
-        
-        return true;
+        if ($user && password_verify($password, $user['password'])) {
+            // Set all necessary session variables
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['auth'] = true;
+            $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['user_status'] = $user['status'];
+            $_SESSION['role'] = $user['role'];
+            
+            // Update last login
+            $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $stmt->execute([$user['id']]);
+            
+            return true;
+        }
+    } catch (PDOException $e) {
+        error_log("Login error: " . $e->getMessage());
     }
-    
     return false;
 }
 
