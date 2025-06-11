@@ -4,9 +4,9 @@ session_start();
 require_once '../dashboard/config/database.php';
 require_once '../dashboard/includes/auth.php';
 
-if (isLoggedIn()) {
-    header('Location: ../dashboard/index.php');
-    exit;
+// Clear any existing session data
+if (!isLoggedIn()) {
+    session_unset();
 }
 
 $erro_login = '';
@@ -18,12 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erro_login = 'Veuillez entrer votre email et votre mot de passe';
     } else {
         if (login($email, $password)) {
-            header('Location: ../dashboard/index.php');
-            exit;
+            // Check user status
+            if ($_SESSION['user_status'] === 'active') {
+                header('Location: ../dashboard/index.php');
+                exit();
+            } elseif ($_SESSION['user_status'] === 'pending') {
+                header('Location: checkout.php');
+                exit();
+            } else {
+                $erro_login = 'Votre compte n\'est pas actif';
+                session_unset();
+            }
         } else {
             $erro_login = 'Email ou mot de passe invalide';
         }
     }
+}
+
+// Add debug output temporarily
+if (isset($_SESSION)) {
+    error_log('Session data: ' . print_r($_SESSION, true));
 }
 ?>
 <!DOCTYPE html>
