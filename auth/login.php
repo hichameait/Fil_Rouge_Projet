@@ -46,9 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="right-items">
             <ul id="menu-list">
                 <li><a href="../index.php">Accueil</a></li>
-                <li><a href="../pricing.php">Tarification</a></li>
-                <li><a href="register.php">S'inscrire</a></li>
-                <li><button class="button-form">Start Now</button></li>
+                <li><a href="../index.php#tarifa">Tarification</a></li>
+                <li><a href="./register.php"><button class="button-form">S'inscrire</button></a></li>
             </ul>
         </div>
     </header>

@@ -342,7 +342,7 @@ function handleDownloadInvoice() {
         $items = $stmt->fetchAll();
         
         // Generate PDF
-        require_once '../vendor/autoload.php';
+        require_once '../../vendor/autoload.php';
         $mpdf = new \Mpdf\Mpdf();
         
         // Add PDF content
