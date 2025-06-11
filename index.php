@@ -18,12 +18,19 @@
             <span></span>
             <span></span>
         </div>
+        <style>
+            #list-menu li a {
+                text-decoration: none;
+                color: var(--eerie-black);
+                transition: color 0.2s;
+            }   
+        </style>
         <div class="list">
             <ul id="list-menu">
-                <li>Guide</li>
-                <li>tarification</li>
-                <li>Se connecter</li>
-                <li><button id="nav-btn">Start Now</button></li>
+                <li><a href="./guide.php">Guide</a></li>
+                <li><a href="#tarifa">Tarification</a></li>
+                <li><a href="./auth/login.php">Se connecter</a></li>
+                <li><a href="./auth/register.php"><button id="nav-btn">Start Now</button></a></li>
             </ul>
         </div>
     </header>
@@ -250,7 +257,7 @@
                     <p id="p2">from 500+ founders</p>
                 </div>
             </div>
-            <div class="tarifa">
+            <div class="tarifa" id="tarifa">
                 <div class="head-tarifa">
                     <h1>Tarification</h1>
                     <p>Évolue selon vos besoins, pas selon vos dépenses.</p>
@@ -360,7 +367,8 @@
                         <img src="./assets/down.svg" alt="toggle" class="toggle-icon">
                     </div>
                     <div class="faq-answer">
-                        <p>Non, SmileDesk est une application web - il suffit d'avoir un navigateur internet et une connexion pour y accéder depuis n'importe quel appareil.</p>
+                        <p>Non, SmileDesk est une application web - il suffit d'avoir un navigateur internet et une
+                            connexion pour y accéder depuis n'importe quel appareil.</p>
                     </div>
                 </div>
 
@@ -417,33 +425,36 @@
         </section>
     </main>
     <footer class="main-footer">
-    <div class="footer-container">
-        <div class="upline">
-            <div class="logo">
-                <a href="../index.php">
-                    <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
-                </a>
+        <div class="footer-container">
+            <div class="upline">
+                <div class="logo">
+                    <a href="../index.php">
+                        <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
+                    </a>
+                </div>
+                <div class="icons">
+                    <ul id="sc-icons">
+                        <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/4f2af5d116/linkedin.svg"
+                                    alt="LinkedIn"></a></li>
+                        <li><a href="#"><img src="https://www.svgrepo.com/show/452229/instagram-1.svg" alt="Instagram"
+                                    width="16px" height="16px"></a></li>
+                        <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/0001a8fb35/x.svg"
+                                    alt="X.com"></a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="icons">
-                <ul id="sc-icons">
-                    <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/4f2af5d116/linkedin.svg" alt="LinkedIn"></a></li>
-                    <li><a href="#"><img src="https://www.svgrepo.com/show/452229/instagram-1.svg" alt="Instagram" width="16px" height="16px"></a></li>
-                    <li><a href="#"><img src="https://a-us.storyblok.com/f/1023015/16x16/0001a8fb35/x.svg" alt="X.com"></a></li>
-                </ul>
+            <hr>
+            <div class="downline">
+                <div class="copyright">
+                    <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
+                </div>
+                <div class="terms-list">
+                    <a href="./index.php">Termes et conditions</a>
+                    <a href="./index.php">Politique de confidentialité</a>
+                </div>
             </div>
         </div>
-        <hr>
-        <div class="downline">
-            <div class="copyright">
-                <p>Droit d'auteur © SmileDesk. Tous droits réservés.</p>
-            </div>
-            <div class="terms-list">
-                <a href="./index.php">Termes et conditions</a>
-                <a href="./index.php">Politique de confidentialité</a>
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
     <script src="./assets/js/main.js"></script>
 </body>
 

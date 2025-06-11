@@ -4,9 +4,22 @@ session_start();
 require_once '../dashboard/config/database.php';
 require_once '../dashboard/includes/auth.php';
 
-if (isLoggedIn()) {
-    header('Location: ../dashboard/index.php');
-    exit;
+
+$userEmail = '';
+$userName = '';
+
+if (isset($_SESSION['user_id'])) {
+    $userId = $_SESSION['user_id'];
+    $stmt = $pdo->prepare("SELECT email, first_name, last_name FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+    if ($user) {
+        $userEmail = $user['email'];
+        $userName = trim($user['first_name'] . ' ' . $user['last_name']);
+    }
+} elseif (isset($_SESSION['email'])) {
+    $userEmail = $_SESSION['email'];
+    $userName = $_SESSION['name'] ?? '';
 }
 ?>
 <!DOCTYPE html>
@@ -17,6 +30,7 @@ if (isLoggedIn()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmileDesk - Checkout</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body>
@@ -28,20 +42,20 @@ if (isLoggedIn()) {
                 </a>
             </div>
         </div>
-        <div class="right-items">
+        <!-- <div class="right-items">
             <ul id="menu-list">
                 <li><a href="../index.php">Accueil</a></li>
                 <li><a href="../pricing.php">Tarification</a></li>
                 <li><a href="register.php">S'inscrire</a></li>
                 <li><button class="button-form">Start Now</button></li>
             </ul>
-        </div>
+        </div> -->
     </header>
 
     <main class="checkout-container">
         <section class="checkout-form">
             <h1>Checkout</h1>
-            <form action="" method="post">
+            <form id="checkout-form" action="" method="post">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstname">
@@ -85,6 +99,10 @@ if (isLoggedIn()) {
                         </label>
                     </div>
                 </div>
+
+                <div id="payment-element" class="form-group"></div>
+                <div id="payment-error" style="color:red;margin-top:10px;"></div>
+                <button type="submit" class="button-form button-pay">Pay now</button>
             </form>
         </section>
 
@@ -114,8 +132,6 @@ if (isLoggedIn()) {
                         <span>500 MAD</span>
                     </div>
                 </div>
-
-                <button type="submit" class="button-form button-pay">Pay now</button>
             </div>
         </section>
     </main>
@@ -147,6 +163,51 @@ if (isLoggedIn()) {
             </div>
         </div>
     </footer>
+    <script>
+const stripe = Stripe('pk_test_51RYmSVRuYmOMaUOhQP6lYiBcuZE3a45zGjJCn4E5XToF9t7IOwH7t90fmNSNOBRb0D12v7QcBstgeC73zGtcSaQ100T7lhpETh');
+
+let elements;
+
+fetch('create-payment-intent.php', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        elements = stripe.elements({ clientSecret: data.clientSecret });
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+    });
+
+document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Get address fields from form
+    const billingDetails = {
+        name: USER_NAME,
+        email: USER_EMAIL,
+        address: {
+            line1: document.getElementById('address').value,
+            line2: document.getElementById('apartment').value,
+            city: document.getElementById('city').value,
+            postal_code: document.getElementById('postal').value,
+        }
+    };
+
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: window.location.origin + '/Fil_Rouge_Projet/auth/thank-you.php',
+            payment_method_data: {
+                billing_details: billingDetails
+            }
+        },
+    });
+    if (error) {
+        document.getElementById('payment-error').textContent = error.message;
+    }
+});
+
+    const USER_EMAIL = <?php echo json_encode($userEmail); ?>;
+    const USER_NAME = <?php echo json_encode($userName); ?>;
+</script>
 </body>
 
 </html>

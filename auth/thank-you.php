@@ -1,23 +1,62 @@
 <?php
-    session_start();
+session_start();
 
-    require_once '../dashboard/config/database.php';
-    require_once '../dashboard/includes/auth.php';
+require_once '../dashboard/config/database.php';
+require_once '../dashboard/includes/auth.php';
+require_once '../vendor/autoload.php'; 
 
-    // if (isLoggedIn()) {
-    //     header('Location: ../dashboard/index.php');
-    //     exit;
-    // }
+$paymentIntentId = isset($_GET['payment_intent']) ? $_GET['payment_intent'] : null;
 
-    $orderNumber = 'DQFDHG5E0';
-    $userName = 'Adam';
-    $contactEmail = 'jordan.chen@domain.com';
-    $billingName = 'Jordan Chen';
-    $billingAddress = "151 O'Connor St\nOttawa, ON, K2P 2L8\nCanada";
-    $landingPage = 'Dentist Landing Page v1';
-    $cardType = 'Visa';
-    $cardLast4 = '1234';
-    $amount = '74.00';
+$orderNumber = '';
+$userName = '';
+$contactEmail = '';
+$billingName = '';
+$billingAddress = '';
+$landingPage = '';
+$cardType = '';
+$cardLast4 = '';
+$amount = '';
+
+if ($paymentIntentId) {
+    \Stripe\Stripe::setApiKey('sk_test_51RYmSVRuYmOMaUOhPOG69YgXqQOG9uefxPizc3nC8GVL2FToqNbV94AWR65Jl9WoXAopWqxrdsgn9pyBijAgumZf00Kl4F3TkE'); 
+    try {
+        $intent = \Stripe\PaymentIntent::retrieve($paymentIntentId, []);
+        $charges = isset($intent->charges) && isset($intent->charges->data) ? $intent->charges->data : [];
+        if (is_array($charges) && count($charges) > 0) {
+            $charge = $charges[0];
+            $orderNumber = $intent->id;
+            $amount = number_format($intent->amount_received / 100, 2);
+            $contactEmail = $charge->billing_details->email ?? '';
+            $billingName = $charge->billing_details->name ?? '';
+            $billingAddress = '';
+            if (isset($charge->billing_details->address)) {
+                $addr = $charge->billing_details->address;
+                $billingAddress = trim(
+                    ($addr->line1 ?? '') . "\n" .
+                    ($addr->line2 ?? '') . "\n" .
+                    ($addr->city ?? '') . ', ' . ($addr->state ?? '') . ', ' . ($addr->postal_code ?? '') . "\n" .
+                    ($addr->country ?? '')
+                );
+            }
+            $userName = $billingName ?: 'Customer';
+            $landingPage = 'SmileDesk Checkout';
+            if (isset($charge->payment_method_details->card)) {
+                $cardType = ucfirst($charge->payment_method_details->card->brand);
+                $cardLast4 = $charge->payment_method_details->card->last4;
+            }
+        }
+    } catch (\Exception $e) {
+        $orderNumber = $paymentIntentId;
+        $userName = 'Customer';
+        $contactEmail = '';
+        $billingName = '';
+        $billingAddress = '';
+        $landingPage = 'SmileDesk Checkout';
+        $cardType = '';
+        $cardLast4 = '';
+        $amount = '';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,7 +183,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <div class="order-number">Confirmation #<?php echo $orderNumber; ?></div>
+        <div class="order-number">Confirmation #<?php echo htmlspecialchars($orderNumber); ?></div>
         <div class="thank-you">Thank you, <?php echo htmlspecialchars($userName); ?>!</div>
         <div class="card">
             <h3>Your order is confirmed</h3>
@@ -154,16 +193,18 @@
             <h3>Order details</h3>
             <div class="details-label">Contact information</div>
             <div class="details-value"><?php echo htmlspecialchars($contactEmail); ?></div>
-            <div class="details-label">billing address</div>
+            <div class="details-label">Billing address</div>
             <div class="details-value" style="white-space: pre-line;"><?php echo htmlspecialchars($billingName . "\n" . $billingAddress); ?></div>
             <div class="details-label">Landing Page</div>
             <div class="details-value"><?php echo htmlspecialchars($landingPage); ?></div>
             <div class="details-label">Payment method</div>
             <div class="payment-method">
                 <span class="visa-logo">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" style="height:16px;">
+                    <?php if ($cardType): ?>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="<?php echo htmlspecialchars($cardType); ?>" style="height:16px;">
+                    <?php endif; ?>
                 </span>
-                <span><?php echo $cardType; ?> •••• <?php echo $cardLast4; ?> - $<?php echo $amount; ?></span>
+                <span><?php echo htmlspecialchars($cardType); ?> •••• <?php echo htmlspecialchars($cardLast4); ?> - $<?php echo htmlspecialchars($amount); ?></span>
             </div>
         </div>
         <form action="../dashboard/index.php">
