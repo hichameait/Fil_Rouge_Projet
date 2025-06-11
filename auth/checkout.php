@@ -168,7 +168,7 @@ const stripe = Stripe('pk_test_51RYmSVRuYmOMaUOhQP6lYiBcuZE3a45zGjJCn4E5XToF9t7I
 
 let elements;
 
-fetch('create-payment-intent.php', { method: 'POST' })
+fetch('payment-intent.php', { method: 'POST' })
     .then(res => res.json())
     .then(data => {
         elements = stripe.elements({ clientSecret: data.clientSecret });
