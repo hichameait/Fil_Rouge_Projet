@@ -445,7 +445,7 @@ CREATE TABLE `users` (
   `last_name` varchar(50) NOT NULL,
   `role` enum('admin','dentist','assistant','receptionist') NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `phone` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
   `specialization` varchar(100) DEFAULT NULL,
   `license_number` varchar(50) DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',

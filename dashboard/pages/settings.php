@@ -3,15 +3,29 @@ requireRole('admin');
 
 $user_id = $_SESSION['user_id'];
 
-// Get settings information
+// Check if settings row exists, if not, create it
 $settings = fetchOne(
     "SELECT * FROM settings WHERE user_id = ?",
     [$user_id]
 );
 
+if (!$settings) {
+    // Get next id for settings (if id is not AUTO_INCREMENT)
+    $stmt = $pdo->query("SELECT MAX(id) AS max_id FROM settings");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $nextId = $row && $row['max_id'] ? ($row['max_id'] + 1) : 1;
+
+    // Insert with explicit id
+    $stmt = $pdo->prepare("INSERT INTO settings (id, user_id, clinic_name, clinic_address, clinic_phone, clinic_email, clinic_website, clinic_logo_url, clinic_description, working_hours, updated_at) VALUES (?, ?, '', '', '', '', '', '', '', '{}', NOW())");
+    $stmt->execute([$nextId, $user_id]);
+    // Fetch the newly created row
+    $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
+}
+
+// Fetch all users for this clinic, including the current user even if clinic_id is NULL
 $users = fetchAll(
-    "SELECT * FROM users WHERE id = ? ORDER BY role, first_name",
-    [$user_id]
+    "SELECT * FROM users WHERE (clinic_id = ? OR id = ?) ORDER BY role, first_name",
+    [$settings['id'], $user_id]
 );
 
 $success_message = $error_message = '';
@@ -69,6 +83,36 @@ function updateSettings() {
     }
 }
 
+function addUser() {
+    global $pdo, $user_id, $success_message, $error_message, $settings;
+    $first_name = trim($_POST['add_first_name'] ?? '');
+    $last_name = trim($_POST['add_last_name'] ?? '');
+    $email = trim($_POST['add_email'] ?? '');
+    $role = $_POST['add_role'] ?? 'assistant';
+    $password = $_POST['add_password'] ?? '';
+    // Use the current settings row id as clinic_id
+    $clinic_id = $settings['id'];
+    if (!$first_name || !$email || !$password) {
+        $error_message = "First name, email, and password are required.";
+        return;
+    }
+    // Check if email already exists
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    if ($stmt->fetchColumn() > 0) {
+        $error_message = "A user with this email already exists.";
+        return;
+    }
+    try {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("INSERT INTO users (first_name, last_name, email, password, role, status, created_at, clinic_id) VALUES (?, ?, ?, ?, ?, 'active', NOW(), ?)");
+        $stmt->execute([$first_name, $last_name, $email, $hashed, $role, $clinic_id]);
+        $success_message = "User added successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error adding user: " . $e->getMessage();
+    }
+}
+
 // Parse working hours
 $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
 ?>
@@ -115,17 +159,17 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="clinic_name" class="block text-sm font-medium text-gray-700 mb-1">Clinic Name</label>
-                        <input type="text" id="clinic_name" name="clinic_name" value="<?= htmlspecialchars($settings['clinic_name']) ?>"
+                        <input type="text" id="clinic_name" name="clinic_name" value="<?= htmlspecialchars($settings['clinic_name'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="clinic_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input type="tel" id="clinic_phone" name="clinic_phone" value="<?= htmlspecialchars($settings['clinic_phone']) ?>"
+                        <input type="tel" id="clinic_phone" name="clinic_phone" value="<?= htmlspecialchars($settings['clinic_phone'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="clinic_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="clinic_email" name="clinic_email" value="<?= htmlspecialchars($settings['clinic_email']) ?>"
+                        <input type="email" id="clinic_email" name="clinic_email" value="<?= htmlspecialchars($settings['clinic_email'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
@@ -147,7 +191,7 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                 <div>
                     <label for="clinic_address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                     <textarea id="clinic_address" name="clinic_address" rows="3"
-                              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($settings['clinic_address']) ?></textarea>
+                              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($settings['clinic_address'] ?? '') ?></textarea>
                 </div>
                 <!-- Working Hours -->
                 <div>
@@ -216,14 +260,22 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                             <span class="text-blue-600 font-semibold text-sm">
-                                                <?= strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1)) ?>
+                                                <?php
+                                                $firstInitial = isset($user['first_name']) && $user['first_name'] ? substr($user['first_name'], 0, 1) : '';
+                                                $lastInitial = isset($user['last_name']) && $user['last_name'] ? substr($user['last_name'], 0, 1) : '';
+                                                echo strtoupper($firstInitial . $lastInitial);
+                                                ?>
                                             </span>
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">
-                                                <?= $user['first_name'] . ' ' . $user['last_name'] ?>
+                                                <?php
+                                                $firstName = isset($user['first_name']) ? $user['first_name'] : '';
+                                                $lastName = isset($user['last_name']) ? $user['last_name'] : '';
+                                                echo htmlspecialchars(trim($firstName . ' ' . $lastName));
+                                                ?>
                                             </div>
-                                            <div class="text-sm text-gray-500"><?= $user['email'] ?></div>
+                                            <div class="text-sm text-gray-500"><?= isset($user['email']) ? htmlspecialchars($user['email']) : '' ?></div>
                                         </div>
                                     </div>
                                 </td>
@@ -254,7 +306,7 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?= $user['last_login'] ? date('M j, Y g:i A', strtotime($user['last_login'])) : 'Never' ?>
+                                    <?= !empty($user['last_login']) ? date('M j, Y g:i A', strtotime($user['last_login'])) : 'Never' ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
@@ -438,6 +490,44 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
     </div>
 </div>
 
+<!-- Add User Modal -->
+<div id="addUserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button id="closeAddUserModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h3 class="text-lg font-semibold mb-4">Add User</h3>
+        <form method="POST" class="space-y-4">
+            <input type="hidden" name="action" value="add_user">
+            <div>
+                <label class="block text-sm font-medium mb-1">First Name</label>
+                <input type="text" name="add_first_name" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Last Name</label>
+                <input type="text" name="add_last_name" class="w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Email</label>
+                <input type="email" name="add_email" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Role</label>
+                <select name="add_role" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    <option value="assistant">Assistant</option>
+                    <option value="receptionist">Receptionist</option>
+                    <option value="dentist">Dentist</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Password</label>
+                <input type="password" name="add_password" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 // Tab switching logic
 document.querySelectorAll('.settings-tab-btn').forEach(btn => {
@@ -461,5 +551,20 @@ document.querySelectorAll('.day-closed-checkbox').forEach(function(checkbox) {
         const timeInputs = parent.querySelectorAll('.day-time-input');
         timeInputs.forEach(input => input.disabled = this.checked);
     });
+});
+
+// Modal logic for Add User
+const addUserBtn = document.getElementById('addUserBtn');
+const addUserModal = document.getElementById('addUserModal');
+const closeAddUserModal = document.getElementById('closeAddUserModal');
+
+addUserBtn.addEventListener('click', () => {
+    addUserModal.classList.remove('hidden');
+});
+closeAddUserModal.addEventListener('click', () => {
+    addUserModal.classList.add('hidden');
+});
+window.addEventListener('click', (e) => {
+    if (e.target === addUserModal) addUserModal.classList.add('hidden');
 });
 </script>

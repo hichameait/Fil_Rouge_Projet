@@ -1,3 +1,12 @@
+<?php
+// Get current user info from session or database
+$currentUser = null;
+if (isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+?>
 <aside class="hidden md:flex h-screen w-64 flex-col border-r bg-white">
     <div class="p-6 border-b">
         <div class="flex items-center">
@@ -16,7 +25,7 @@
                 ['id' => 'analytics', 'label' => 'Analytics', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'roles' => ['admin', 'dentist']],
                 ['id' => 'documents', 'label' => 'Documents', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'roles' => ['admin', 'dentist', 'assistant']],
                 ['id' => 'services', 'label' => 'Services Catalog', 'icon' => 'M4 6h16M4 10h16M4 14h16M4 18h16', 'roles' => ['admin', 'dentist']],
-                ['id' => 'settings', 'label' => 'Settings', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', 'roles' => ['admin']]
+                ['id' => 'settings', 'label' => 'Settings', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', 'roles' => ['admin', 'dentist']]
             ];
             foreach ($menu_items as $item) {
                 $userRole = isset($_SESSION['role']) ? $_SESSION['role'] : (isset($user['role']) ? $user['role'] : 'guest');
@@ -38,8 +47,8 @@
             <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <span class="text-white text-sm font-medium">
                     <?php 
-                        $firstInitial = !empty($user['first_name']) ? substr($user['first_name'], 0, 1) : (isset($_SESSION['name']) ? substr($_SESSION['name'], 0, 1) : '?');
-                        $lastInitial = !empty($user['last_name']) ? substr($user['last_name'], 0, 1) : (isset($_SESSION['last_name']) ? substr($_SESSION['last_name'], 0, 1) : '?');
+                        $firstInitial = !empty($currentUser['first_name']) ? substr($currentUser['first_name'], 0, 1) : (isset($_SESSION['name']) ? substr($_SESSION['name'], 0, 1) : '?');
+                        $lastInitial = !empty($currentUser['last_name']) ? substr($currentUser['last_name'], 0, 1) : (isset($_SESSION['last_name']) ? substr($_SESSION['last_name'], 0, 1) : '?');
                         echo strtoupper($firstInitial . $lastInitial);
                     ?>
                 </span>
@@ -47,12 +56,12 @@
             <div class="ml-3">
                 <p class="text-sm font-medium text-gray-700">
                     <?php 
-                        $firstName = $user['first_name'] ?? ($_SESSION['name'] ?? 'User');
-                        $lastName = $user['last_name'] ?? ($_SESSION['last_name'] ?? '');
+                        $firstName = $currentUser['first_name'] ?? ($_SESSION['name'] ?? 'User');
+                        $lastName = $currentUser['last_name'] ?? ($_SESSION['last_name'] ?? '');
                         echo htmlspecialchars(trim($firstName . ' ' . $lastName));
                     ?>
                 </p>
-                <p class="text-xs text-gray-500"><?= ucfirst($user['role'] ?? ($_SESSION['role'] ?? 'guest')) ?></p>
+                <p class="text-xs text-gray-500"><?= ucfirst($currentUser['role'] ?? ($_SESSION['role'] ?? 'guest')) ?></p>
             </div>
         </div>
         <a href="../auth/logout.php" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-all hover:bg-gray-50">
@@ -105,8 +114,8 @@
                 <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                     <span class="text-white text-sm font-medium">
                         <?php 
-                            $firstInitial = !empty($user['first_name']) ? substr($user['first_name'], 0, 1) : (isset($_SESSION['name']) ? substr($_SESSION['name'], 0, 1) : '?');
-                            $lastInitial = !empty($user['last_name']) ? substr($user['last_name'], 0, 1) : (isset($_SESSION['last_name']) ? substr($_SESSION['last_name'], 0, 1) : '?');
+                            $firstInitial = !empty($currentUser['first_name']) ? substr($currentUser['first_name'], 0, 1) : (isset($_SESSION['name']) ? substr($_SESSION['name'], 0, 1) : '?');
+                            $lastInitial = !empty($currentUser['last_name']) ? substr($currentUser['last_name'], 0, 1) : (isset($_SESSION['last_name']) ? substr($_SESSION['last_name'], 0, 1) : '?');
                             echo strtoupper($firstInitial . $lastInitial);
                         ?>
                     </span>
@@ -114,12 +123,12 @@
                 <div class="ml-3">
                     <p class="text-sm font-medium text-gray-700">
                         <?php 
-                            $firstName = $user['first_name'] ?? ($_SESSION['name'] ?? 'User');
-                            $lastName = $user['last_name'] ?? ($_SESSION['last_name'] ?? '');
+                            $firstName = $currentUser['first_name'] ?? ($_SESSION['name'] ?? 'User');
+                            $lastName = $currentUser['last_name'] ?? ($_SESSION['last_name'] ?? '');
                             echo htmlspecialchars(trim($firstName . ' ' . $lastName));
                         ?>
                     </p>
-                    <p class="text-xs text-gray-500"><?= ucfirst($user['role'] ?? ($_SESSION['role'] ?? 'guest')) ?></p>
+                    <p class="text-xs text-gray-500"><?= ucfirst($currentUser['role'] ?? ($_SESSION['role'] ?? 'guest')) ?></p>
                 </div>
             </div>
             <a href="../auth/logout.php" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-all hover:bg-gray-50">

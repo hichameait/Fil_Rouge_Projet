@@ -32,10 +32,16 @@ if (isset($_POST["signup"])) {
 
     if (empty($erro_name) && empty($erro_email) && empty($error_pass) && empty($error_confirm)) {
         try {
+            // Get next id (not safe for concurrent use, but works for demo)
+            $stmt = $pdo->query("SELECT MAX(id) AS max_id FROM users");
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $nextId = $row ? ($row['max_id'] + 1) : 1;
+
             $hashed = password_hash($passw, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (email, password, first_name, role, status) VALUES (:email, :motpass, :prenom, :role, :status)";
+            $sql = "INSERT INTO users (id, email, password, first_name, role, status) VALUES (:id, :email, :motpass, :prenom, :role, :status)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
+                ":id" => $nextId,
                 ":email" => $email,
                 ":motpass" => $hashed,
                 ":prenom" => $name,

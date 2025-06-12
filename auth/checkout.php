@@ -28,6 +28,9 @@ $plan = fetchOne("SELECT * FROM subscription_plans WHERE id = ? AND is_active = 
 if (!$plan) {
     die('Invalid plan selected.');
 }
+// Add these lines to get plan name and price
+$plan_name = $plan['name'];
+$plan_price = $plan['price'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_success'])) {
     // Payment was successful, save subscription
@@ -166,10 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="order-details">
                 <div class="product-info">
                     <div>
-                        <h3>Starter Plan</h3>
+                        <h3><?php echo htmlspecialchars($plan_name); ?></h3>
                         <p>One-Time</p>
                     </div>
-                    <div class="price">500 MAD</div>
+                    <div class="price"><?php echo htmlspecialchars($plan_price); ?> MAD</div>
                 </div>
 
                 <div class="discount-section">
@@ -180,11 +183,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="total-section">
                     <div class="subtotal">
                         <span>Subtotal</span>
-                        <span>500 MAD</span>
+                        <span><?php echo htmlspecialchars($plan_price); ?> MAD</span>
                     </div>
                     <div class="total">
                         <span>Total</span>
-                        <span>500 MAD</span>
+                        <span><?php echo htmlspecialchars($plan_price); ?> MAD</span>
                     </div>
                 </div>
             </div>
@@ -223,6 +226,11 @@ const stripe = Stripe('pk_test_51RYmSVRuYmOMaUOhQP6lYiBcuZE3a45zGjJCn4E5XToF9t7I
 let elements;
 let paymentElement;
 
+const PLAN_NAME = <?php echo json_encode($plan_name); ?>;
+const PLAN_PRICE = <?php echo json_encode($plan_price); ?>;
+const USER_EMAIL = <?php echo json_encode($userEmail); ?>;
+const USER_NAME = <?php echo json_encode($userName); ?>;
+
 // Create payment intent first, then initialize elements
 async function createPaymentIntent() {
     const response = await fetch('payment-intent.php', {
@@ -234,7 +242,9 @@ async function createPaymentIntent() {
             billing_details: {
                 name: document.getElementById('firstname').value + ' ' + document.getElementById('lastname').value,
                 email: USER_EMAIL
-            }
+            },
+            plan_name: PLAN_NAME,
+            plan_price: PLAN_PRICE
         })
     });
     
@@ -321,9 +331,6 @@ document.getElementById('checkout-form').addEventListener('submit', async (e) =>
         submitButton.textContent = 'Pay now';
     }
 });
-
-const USER_EMAIL = <?php echo json_encode($userEmail); ?>;
-const USER_NAME = <?php echo json_encode($userName); ?>;
     </script>
 </body>
 
