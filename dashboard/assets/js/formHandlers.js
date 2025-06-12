@@ -52,3 +52,19 @@ async function handlePatientSubmit(e) {
         showToast('An error occurred. Please try again.', 'error')
     }
 }
+
+fetch('/api/invoices.php', {
+    // ...fetch options...
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        // Close the modal (replace '#invoiceModal' with your modal's actual ID or class)
+        document.getElementById('invoiceModal').classList.remove('open');
+        // Optionally reset the form
+        document.getElementById('invoiceForm').reset();
+        // Optionally refresh the invoice list or show a success message
+    } else {
+        // Handle error
+    }
+});

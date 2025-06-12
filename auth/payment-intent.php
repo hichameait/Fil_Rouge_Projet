@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../vendor/autoload.php'; 
+require_once '../dashboard/api/vendor/autoload.php'; 
 require_once '../dashboard/config/database.php';
 
 \Stripe\Stripe::setApiKey('sk_test_51RYmSVRuYmOMaUOhPOG69YgXqQOG9uefxPizc3nC8GVL2FToqNbV94AWR65Jl9WoXAopWqxrdsgn9pyBijAgumZf00Kl4F3TkE');

@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['is_logged']) || !$_SESSION['is_logged'] || !isset($_SESSION['payment_completed'])) {
+if (!isset($_SESSION['is_logged']) || !$_SESSION['is_logged']) {
     header('Location: ../auth/login.php');
     exit;
 }

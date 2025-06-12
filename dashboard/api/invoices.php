@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
 require_once '../config/database.php';
 require_once '../includes/auth.php';
 
@@ -299,32 +300,32 @@ function handleDeleteInvoice() {
 
 function handleDownloadInvoice() {
     global $pdo, $user_id;
-    
+
     if (!isset($_GET['id'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Invoice ID is required']);
         return;
     }
-    
+
     try {
         // Get invoice data
         $stmt = $pdo->prepare("
             SELECT i.*, p.first_name, p.last_name, p.email, p.phone, p.address,
-                   c.name as clinic_name, c.address as clinic_address, c.phone as clinic_phone
+                   s.clinic_name, s.clinic_address, s.clinic_phone
             FROM invoices i
             JOIN patients p ON i.patient_id = p.id
-            JOIN clinics c ON i.user_id = c.id
+            LEFT JOIN settings s ON i.user_id = s.user_id
             WHERE i.id = ? AND i.user_id = ?
         ");
         $stmt->execute([$_GET['id'], $user_id]);
         $invoice = $stmt->fetch();
-        
+
         if (!$invoice) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
             return;
         }
-        
+
         // Get invoice items
         $stmt = $pdo->prepare("
             SELECT ii.*, s.name as service_name
@@ -334,12 +335,19 @@ function handleDownloadInvoice() {
         ");
         $stmt->execute([$invoice['id']]);
         $items = $stmt->fetchAll();
-        
-        // Generate PDF
-        require_once '../../vendor/autoload.php';
-        $mpdf = new \Mpdf\Mpdf();
-        
-        // Add PDF content
+
+        // Generate PDF using TCPDF
+        require_once __DIR__ . '/vendor/autoload.php';
+        if (!class_exists('TCPDF')) {
+            http_response_code(500);
+            echo json_encode(['error' => 'TCPDF library not found. Please run "composer require tecnickcom/tcpdf" and ensure vendor/autoload.php is included in the api folder.']);
+            return;
+        }
+
+        $pdf = new TCPDF();
+        $pdf->AddPage();
+
+        // Build HTML content for the invoice
         $html = '
         <style>
             .invoice-header { padding: 20px 0; }
@@ -353,7 +361,6 @@ function handleDownloadInvoice() {
             <p>Invoice #: '.$invoice['invoice_number'].'</p>
             <p>Date: '.date('M j, Y', strtotime($invoice['created_at'])).'</p>
         </div>
-        
         <div class="invoice-details">
             <div style="float: left; width: 50%;">
                 <h3>From:</h3>
@@ -368,9 +375,7 @@ function handleDownloadInvoice() {
                 <p>Phone: '.$invoice['phone'].'</p>
             </div>
             <div style="clear: both;"></div>
-        </div>';
-        
-        $html .= '
+        </div>
         <table class="items-table">
             <thead>
                 <tr>
@@ -381,7 +386,6 @@ function handleDownloadInvoice() {
                 </tr>
             </thead>
             <tbody>';
-        
         foreach ($items as $item) {
             $html .= '
             <tr>
@@ -391,22 +395,20 @@ function handleDownloadInvoice() {
                 <td>$'.number_format($item['total_price'], 2).'</td>
             </tr>';
         }
-        
-        $html .= '</tbody></table>';
-        
-        $html .= '
+        $html .= '</tbody></table>
         <div class="total-section">
             <p>Subtotal: $'.number_format($invoice['subtotal'], 2).'</p>
             <p>Tax: $'.number_format($invoice['tax_amount'], 2).'</p>
             <p>Discount: $'.number_format($invoice['discount_amount'], 2).'</p>
             <p><strong>Total: $'.number_format($invoice['total_amount'], 2).'</strong></p>
         </div>';
-        
-        $mpdf->WriteHTML($html);
-        
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+
         // Output PDF
-        $mpdf->Output('Invoice-'.$invoice['invoice_number'].'.pdf', 'D');
-        
+        $pdf->Output('Invoice-'.$invoice['invoice_number'].'.pdf', 'D');
+        exit;
+
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);

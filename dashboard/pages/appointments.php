@@ -396,220 +396,126 @@ if (!empty($date_filter)) {
 </div>
 
 <script>
+// Centralized modal logic for appointments
+function openModal(modalId) {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Menu toggle functionality
+    // --- MODAL CLOSE BUTTONS ---
+    document.getElementById('closeAppointmentModal').addEventListener('click', function() {
+        closeModal('appointmentDetailsModal');
+    });
+    document.getElementById('closeAppointmentEditModal').addEventListener('click', function() {
+        closeModal('appointmentModal');
+    });
+    // --- MODAL BACKDROP CLICK ---
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
+
+    // --- APPOINTMENT MENU LOGIC ---
     document.querySelectorAll('.appointment-menu-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            // Close all other menus first
             document.querySelectorAll('.appointment-menu').forEach(function(menu) {
                 menu.classList.add('hidden');
             });
             var menu = this.nextElementSibling;
-            menu.classList.toggle('hidden');
+            if (menu) menu.classList.toggle('hidden');
         });
     });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.appointment-menu').forEach(function(menu) {
-            menu.classList.add('hidden');
-        });
+    // Close menus when clicking outside any menu or button
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.appointment-menu') && !e.target.closest('.appointment-menu-btn')) {
+            document.querySelectorAll('.appointment-menu').forEach(function(menu) {
+                menu.classList.add('hidden');
+            });
+        }
     });
 
-    // View Details action
-    document.querySelectorAll('[data-action="view"]').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
+    // --- APPOINTMENT MENU ACTIONS ---
+    document.querySelectorAll('.appointment-menu a[data-action]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            var appointmentId = this.getAttribute('data-id');
-            var modal = document.getElementById('appointmentDetailsModal');
-            var content = document.getElementById('appointmentDetailsContent');
-            
-            // Hide menus and show modal
+            const action = this.getAttribute('data-action');
+            const appointmentId = this.getAttribute('data-id');
+            // Always close all menus before opening modal
             document.querySelectorAll('.appointment-menu').forEach(menu => menu.classList.add('hidden'));
-            modal.classList.remove('hidden');
-            
-            // Load appointment data
-            fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`)
+            if (action === 'view') {
+                // Load and show view modal
+                openModal('appointmentDetailsModal');
+                const content = document.getElementById('appointmentDetailsContent');
+                content.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
+                fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.appointment) {
+                            var a = data.appointment;
+                            content.innerHTML = `
+                                <div class="mb-2"><span class="font-semibold">Patient:</span> ${a.first_name} ${a.last_name}</div>
+                                <div class="mb-2"><span class="font-semibold">Phone:</span> ${a.phone}</div>
+                                <div class="mb-2"><span class="font-semibold">Service:</span> ${a.service_name}</div>
+                                <div class="mb-2"><span class="font-semibold">Date:</span> ${a.appointment_date}</div>
+                                <div class="mb-2"><span class="font-semibold">Time:</span> ${a.appointment_time}</div>
+                                <div class="mb-2"><span class="font-semibold">Duration:</span> ${a.duration} minutes</div>
+                                <div class="mb-2"><span class="font-semibold">Status:</span> ${a.status.toUpperCase()}</div>
+                                <div class="mb-2"><span class="font-semibold">Notes:</span> ${a.notes || '<span class="text-gray-400">No notes</span>'}</div>
+                            `;
+                        } else {
+                            content.innerHTML = '<div class="text-red-500">Failed to load appointment details.</div>';
+                        }
+                    });
+            } else if (action === 'edit') {
+                // Load and show edit modal
+                Promise.all([
+                    fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php').then(r => r.json()),
+                    fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php').then(r => r.json())
+                ]).then(([patients, services]) => {
+                    document.getElementById('patient-select').innerHTML = patients.map(p => 
+                        `<option value="${p.id}">${p.first_name} ${p.last_name}</option>`
+                    ).join('');
+                    document.getElementById('service-select').innerHTML = services.map(s => 
+                        `<option value="${s.id}">${s.name}</option>`
+                    ).join('');
+                    return fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`);
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.appointment) {
                         var a = data.appointment;
-                        content.innerHTML = `
-                            <div class="mb-2"><span class="font-semibold">Patient:</span> ${a.first_name} ${a.last_name}</div>
-                            <div class="mb-2"><span class="font-semibold">Phone:</span> ${a.phone}</div>
-                            <div class="mb-2"><span class="font-semibold">Service:</span> ${a.service_name}</div>
-                            <div class="mb-2"><span class="font-semibold">Date:</span> ${a.appointment_date}</div>
-                            <div class="mb-2"><span class="font-semibold">Time:</span> ${a.appointment_time}</div>
-                            <div class="mb-2"><span class="font-semibold">Duration:</span> ${a.duration} minutes</div>
-                            <div class="mb-2"><span class="font-semibold">Status:</span> ${a.status.toUpperCase()}</div>
-                            <div class="mb-2"><span class="font-semibold">Notes:</span> ${a.notes || '<span class="text-gray-400">No notes</span>'}</div>
-                        `;
+                        document.getElementById('appointment-id').value = a.id;
+                        document.getElementById('patient-select').value = a.patient_id;
+                        document.getElementById('service-select').value = a.service_id;
+                        document.getElementById('appointment-date').value = a.appointment_date;
+                        document.getElementById('appointment-time').value = a.appointment_time;
+                        document.getElementById('duration').value = a.duration;
+                        document.getElementById('status').value = a.status;
+                        document.getElementById('notes').value = a.notes || '';
+                        openModal('appointmentModal');
                     }
                 });
-        });
-    });
-
-    // Edit action
-    document.querySelectorAll('[data-action="edit"]').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var appointmentId = this.getAttribute('data-id');
-            
-            // First load patients and services
-            Promise.all([
-                fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php').then(r => r.json()),
-                fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php').then(r => r.json())
-            ]).then(([patients, services]) => {
-                // Populate selects
-                document.getElementById('patient-select').innerHTML = patients.map(p => 
-                    `<option value="${p.id}">${p.first_name} ${p.last_name}</option>`
-                ).join('');
-                
-                document.getElementById('service-select').innerHTML = services.map(s => 
-                    `<option value="${s.id}">${s.name}</option>`
-                ).join('');
-
-                // Then load appointment data
-                return fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`);
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.appointment) {
-                    var a = data.appointment;
-                    document.getElementById('appointment-id').value = a.id;
-                    document.getElementById('patient-select').value = a.patient_id;
-                    document.getElementById('service-select').value = a.service_id;
-                    document.getElementById('appointment-date').value = a.appointment_date;
-                    document.getElementById('appointment-time').value = a.appointment_time;
-                    document.getElementById('duration').value = a.duration;
-                    document.getElementById('status').value = a.status;
-                    document.getElementById('notes').value = a.notes || '';
-                    
-                    // Show modal
-                    document.querySelectorAll('.appointment-menu').forEach(menu => menu.classList.add('hidden'));
-                    document.getElementById('appointmentModal').classList.remove('hidden');
-                }
-            });
-        });
-    });
-
-    // Close modal logic
-    document.getElementById('closeAppointmentModal').addEventListener('click', function(e) {
-        document.getElementById('appointmentDetailsModal').classList.add('hidden');
-    });
-
-    document.getElementById('closeAppointmentEditModal').addEventListener('click', function(e) {
-        document.getElementById('appointmentModal').classList.add('hidden');
-    });
-
-    ['appointmentDetailsModal', 'appointmentModal'].forEach(modalId => {
-        document.getElementById(modalId).addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
             }
         });
-    });
-
-    // Generic action modal logic (for call, sms, etc.)
-    document.querySelectorAll('[data-action]').forEach(function(link) {
-        link.addEventListener('click', function(e) {
-            // Only handle call/sms here, skip edit/view (handled above)
-            var action = link.getAttribute('data-action');
-            if (action === 'edit' || action === 'view') return;
-            e.preventDefault();
-            e.stopPropagation();
-            var appointmentId = link.getAttribute('data-id');
-            var modal = document.getElementById('actionModal');
-            var title = document.getElementById('actionModalTitle');
-            var content = document.getElementById('actionModalContent');
-            modal.classList.remove('hidden');
-            title.innerHTML = action.charAt(0).toUpperCase() + action.slice(1) + ' Appointment';
-            content.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
-
-            // Load specific content based on action
-            if (action === 'call' || action === 'sms') {
-                content.innerHTML = `
-                    <div class="text-center">
-                        <p class="text-gray-700 mb-4">Are you sure you want to ${action} this patient?</p>
-                        <div class="flex justify-center gap-4">
-                            <button id="confirmActionBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md" data-action="${action}" data-id="${appointmentId}">
-                                Yes, ${action.charAt(0).toUpperCase() + action.slice(1)}
-                            </button>
-                            <button id="cancelActionBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = '<div class="text-red-500 text-center">Invalid action.</div>';
-            }
-        });
-    });
-
-    // Close action modal logic
-    document.getElementById('closeActionModal').addEventListener('click', function() {
-        document.getElementById('actionModal').classList.add('hidden');
-    });
-    document.getElementById('actionModal').addEventListener('click', function(e) {
-        if (e.target === this) this.classList.add('hidden');
-    });
-
-    // Confirm action (call, sms, etc.)
-    document.getElementById('actionModalContent').addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'confirmActionBtn') {
-            var action = e.target.getAttribute('data-action');
-            var appointmentId = e.target.getAttribute('data-id');
-            // Implement the actual call or sms logic here
-            console.log('Confirmed action:', action, 'for appointment ID:', appointmentId);
-            // Close the modal after action
-            closeModal('actionModal');
-        }
     });
 });
-
-// Modal open/close helpers
-function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
-}
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-}
-
-// Helper functions to load patients/services for the edit form
-function loadPatients() {
-    return fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php')
-        .then(function(response) { return response.json(); })
-        .then(function(patients) {
-            var select = document.getElementById('patient-select');
-            if (select) {
-                select.innerHTML = '<option value="">Select a patient</option>';
-                patients.forEach(function(patient) {
-                    var option = document.createElement('option');
-                    option.value = patient.id;
-                    option.textContent = patient.first_name + ' ' + patient.last_name;
-                    select.appendChild(option);
-                });
-            }
-        });
-}
-function loadServices() {
-    return fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php')
-        .then(function(response) { return response.json(); })
-        .then(function(services) {
-            var select = document.getElementById('service-select');
-            if (select) {
-                select.innerHTML = '<option value="">Select a service</option>';
-                services.forEach(function(service) {
-                    var option = document.createElement('option');
-                    option.value = service.id;
-                    option.textContent = service.name + ' - $' + service.price;
-                    option.setAttribute('data-duration', service.duration);
-                    select.appendChild(option);
-                });
-            }
-        });
-}
+</script>

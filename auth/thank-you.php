@@ -3,7 +3,7 @@ session_start();
 
 require_once '../dashboard/config/database.php';
 require_once '../dashboard/includes/auth.php';
-require_once '../vendor/autoload.php';
+require_once '../dashboard/api/vendor/autoload.php'; 
 
 $paymentIntentId = isset($_GET['payment_intent']) ? $_GET['payment_intent'] : null;
 

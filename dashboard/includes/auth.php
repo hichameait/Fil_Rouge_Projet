@@ -15,15 +15,13 @@ function getCurrentUser() {
     
     return [
         'user_id' => $_SESSION['user_id'] ?? null,
-        'user_id' => $_SESSION['user_id'] ?? null,
-        'first_name' => $_SESSION['first_name'] ?? 'User',
+        'first_name' => $_SESSION['first_name'] ?? ($_SESSION['name'] ?? 'User'),
         'last_name' => $_SESSION['last_name'] ?? '',
         'role' => $_SESSION['role'] ?? 'guest',
         'clinic_name' => $_SESSION['clinic_name'] ?? ''
     ];
 }
 
-// Add this debug function
 function debugSession() {
     return [
         'session_id' => session_id(),
@@ -45,9 +43,13 @@ function login($email, $password) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['auth'] = true;
             $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
-            $_SESSION['user_status'] = $user['status'];
+            $_SESSION['first_name'] = $user['first_name'];
+            $_SESSION['last_name'] = $user['last_name'];
+            $_SESSION['user_status'] = $user['status']; // Make sure this matches DB field
             $_SESSION['role'] = $user['role'];
-            
+            $_SESSION['is_logged'] = true;
+            // Optionally set payment_completed if needed
+            // $_SESSION['payment_completed'] = true;
             // Update last login
             $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $stmt->execute([$user['id']]);

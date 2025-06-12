@@ -46,28 +46,29 @@ function initializeAppointmentManagement() {
   // Appointment menu handling
   document.querySelectorAll(".appointment-menu-btn").forEach((btn) => {
     btn.addEventListener("click", function (e) {
-      e.stopPropagation()
-      const menu = this.nextElementSibling
-      const appointmentId = this.getAttribute("data-id")
+      e.stopPropagation();
+      const menu = this.nextElementSibling;
 
       // Close all other menus
       document.querySelectorAll(".appointment-menu").forEach((m) => {
-        if (m !== menu) m.classList.add("hidden")
-      })
+        if (m !== menu) m.classList.add("hidden");
+      });
 
-      menu.classList.toggle("hidden")
+      // Always show this menu
+      if (menu) menu.classList.remove("hidden");
 
       // Initialize menu item handlers
-      const menuItems = menu.querySelectorAll("a")
+      const appointmentId = this.getAttribute("data-id");
+      const menuItems = menu.querySelectorAll("a");
       menuItems.forEach((item) => {
         item.addEventListener("click", function (e) {
-          e.preventDefault()
-          const action = this.getAttribute("data-action")
-          handleMenuAction(action, appointmentId)
-        })
-      })
-    })
-  })
+          e.preventDefault();
+          const action = this.getAttribute("data-action");
+          handleMenuAction(action, appointmentId);
+        });
+      });
+    });
+  });
 
   // Close menus when clicking outside
   document.addEventListener("click", () => {
