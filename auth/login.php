@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($_SESSION['user_status'] === 'active') {
                 header('Location: ../dashboard/index.php');
                 exit();
-            } elseif ($_SESSION['user_status'] === 'pending') {
+            } elseif ($_SESSION['user_status'] === 'inactive') { // was 'pending'
                 header('Location: checkout.php');
                 exit();
             } else {

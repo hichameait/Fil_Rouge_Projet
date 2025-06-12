@@ -10,7 +10,7 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 $data = $_POST;
 
 $name = trim($data['name'] ?? '');
@@ -30,12 +30,12 @@ if ($name === '' || !$category_id) {
 try {
     if ($id) {
         // Update existing service
-        $stmt = $pdo->prepare("UPDATE services SET name=?, description=?, category_id=?, duration=?, price=?, requires_tooth_selection=? WHERE id=? AND clinic_id=?");
-        $stmt->execute([$name, $description, $category_id, $duration, $price, $requires_tooth_selection, $id, $clinic_id]);
+        $stmt = $pdo->prepare("UPDATE services SET name=?, description=?, category_id=?, duration=?, price=?, requires_tooth_selection=? WHERE id=? AND user_id=?");
+        $stmt->execute([$name, $description, $category_id, $duration, $price, $requires_tooth_selection, $id, $user_id]);
     } else {
         // Insert new service
-        $stmt = $pdo->prepare("INSERT INTO services (clinic_id, name, description, category_id, duration, price, requires_tooth_selection, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
-        $stmt->execute([$clinic_id, $name, $description, $category_id, $duration, $price, $requires_tooth_selection]);
+        $stmt = $pdo->prepare("INSERT INTO services (user_id, name, description, category_id, duration, price, requires_tooth_selection, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+        $stmt->execute([$user_id, $name, $description, $category_id, $duration, $price, $requires_tooth_selection]);
     }
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

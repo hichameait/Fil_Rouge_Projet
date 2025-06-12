@@ -22,6 +22,27 @@ if (isset($_SESSION['user_id'])) {
     $userName = $_SESSION['name'] ?? '';
 }
 
+// Get plan_id from GET or POST
+$plan_id = $_GET['plan_id'] ?? $_POST['plan_id'] ?? 1;
+$plan = fetchOne("SELECT * FROM subscription_plans WHERE id = ? AND is_active = 1", [$plan_id]);
+if (!$plan) {
+    die('Invalid plan selected.');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_success'])) {
+    // Payment was successful, save subscription
+    $user_id = $_SESSION['user_id'];
+    $plan_id = $_POST['plan_id'];
+    $start_date = date('Y-m-d');
+    $end_date = date('Y-m-d', strtotime("+{$plan['duration_months']} months"));
+    $payment_method = $_POST['payment_method'] ?? null;
+    $transaction_id = $_POST['transaction_id'] ?? null;
+    executeQuery("INSERT INTO subscriptions (user_id, plan_id, start_date, end_date, status, payment_method, transaction_id, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?, NOW(), NOW())", [$user_id, $plan_id, $start_date, $end_date, $payment_method, $transaction_id]);
+    // Redirect or show thank you
+    header('Location: thank-you.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['checkout'] = [
         'firstname' => $_POST['firstname'],

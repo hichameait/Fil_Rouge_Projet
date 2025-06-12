@@ -47,7 +47,8 @@ if (isset($_POST["signup"])) {
             $_SESSION['name'] = $name;
             $_SESSION['user_id'] = $pdo->lastInsertId();
 
-            header('Location: checkout.php');
+            $plan_id = isset($_GET['plan_id']) ? intval($_GET['plan_id']) : 1;
+            header('Location: checkout.php?plan_id=' . $plan_id);
             exit;
         } catch (PDOException $er) {
             echo ("error : $er");

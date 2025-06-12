@@ -1,45 +1,45 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 // Get monthly patient registrations
 $monthly_patients = fetchAll(
     "SELECT MONTH(created_at) as month, COUNT(*) as count 
      FROM patients 
-     WHERE clinic_id = ? AND YEAR(created_at) = YEAR(CURDATE())
+     WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE())
      GROUP BY MONTH(created_at)
      ORDER BY month",
-    [$clinic_id]
+    [$user_id]
 );
 
 // Get monthly revenue
 $monthly_revenue = fetchAll(
     "SELECT MONTH(created_at) as month, SUM(total_amount) as revenue 
      FROM invoices 
-     WHERE clinic_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid'
+     WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid'
      GROUP BY MONTH(created_at)
      ORDER BY month",
-    [$clinic_id]
+    [$user_id]
 );
 
-// Get top services
+// Get top services (using new normalized schema)
 $top_services = fetchAll(
     "SELECT s.name, COUNT(a.id) as appointment_count, SUM(s.price) as total_revenue
      FROM appointments a
      JOIN services s ON a.service_id = s.id
-     WHERE a.clinic_id = ? AND YEAR(a.appointment_date) = YEAR(CURDATE())
+     WHERE a.user_id = ? AND YEAR(a.appointment_date) = YEAR(CURDATE())
      GROUP BY s.id
      ORDER BY appointment_count DESC
      LIMIT 10",
-    [$clinic_id]
+    [$user_id]
 );
 
 // Get appointment status distribution
 $appointment_stats = fetchAll(
     "SELECT status, COUNT(*) as count 
      FROM appointments 
-     WHERE clinic_id = ? AND YEAR(appointment_date) = YEAR(CURDATE())
+     WHERE user_id = ? AND YEAR(appointment_date) = YEAR(CURDATE())
      GROUP BY status",
-    [$clinic_id]
+    [$user_id]
 );
 ?>
 

@@ -3,6 +3,18 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 function initializeAppointmentManagement() {
+  // Load patient and service data when the appointment modal opens
+  document.getElementById("newAppointmentBtn")?.addEventListener("click", () => {
+    loadPatients()
+    loadServices()
+  })
+
+  // Appointment form submission
+  const appointmentForm = document.getElementById("appointmentForm")
+  if (appointmentForm) {
+    appointmentForm.addEventListener("submit", handleAppointmentFormSubmit)
+  }
+
   document.querySelectorAll(".confirm-appointment-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       const appointmentId = this.getAttribute("data-id")
@@ -101,6 +113,74 @@ function initializeAppointmentManagement() {
   })
 }
 
+// Patients and Services Loading
+function loadPatients() {
+  fetch("api/patients.php")
+    .then((response) => response.json())
+    .then((patients) => {
+      const select = document.getElementById("patient-select")
+      if (select) {
+        select.innerHTML = '<option value="">Select a patient</option>'
+        patients.forEach((patient) => {
+          const option = document.createElement("option")
+          option.value = patient.id
+          option.textContent = `${patient.first_name} ${patient.last_name}`
+          select.appendChild(option)
+        })
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading patients:", error)
+      showToast("Error loading patients", "error")
+    })
+}
+
+function loadServices() {
+  fetch("api/services.php")
+    .then((response) => response.json())
+    .then((services) => {
+      const select = document.getElementById("service-select")
+      if (select) {
+        select.innerHTML = '<option value="">Select a service</option>'
+        services.forEach((service) => {
+          const option = document.createElement("option")
+          option.value = service.id
+          option.textContent = `${service.name} - $${service.price}`
+          option.setAttribute("data-duration", service.duration)
+          select.appendChild(option)
+        })
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading services:", error)
+      showToast("Error loading services", "error")
+    })
+}
+
+function handleAppointmentFormSubmit(e) {
+  e.preventDefault()
+  const formData = new FormData(e.target)
+  
+  fetch("api/appointments.php", {
+    method: "POST",
+    body: formData
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showToast("Appointment created successfully", "success")
+        closeModal("appointmentModal")
+        setTimeout(() => location.reload(), 1000)
+      } else {
+        showToast(data.error || "Error creating appointment", "error")
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error)
+      showToast("An error occurred. Please try again.", "error")
+    })
+}
+
 function updateAppointmentStatus(appointmentId, status) {
   fetch("api/appointments.php", {
     method: "PUT",
@@ -164,15 +244,37 @@ function handleMenuAction(action, appointmentId) {
       editAppointment(appointmentId)
       break
     case "call":
-      callPatient(appointmentId)
+      showActionModal("Call Patient", `<div class="mb-2">Call functionality for appointment #${appointmentId}.</div>`)
       break
     case "sms":
-      sendSMS(appointmentId)
+      showActionModal("Send SMS", `<div class="mb-2">SMS functionality for appointment #${appointmentId}.</div>`)
       break
     case "cancel":
       cancelAppointment(appointmentId)
       break
   }
+}
+
+// Populate the appointment edit form fields
+function populateAppointmentForm(appointment) {
+  document.getElementById("appointment-id").value = appointment.id || "";
+  document.getElementById("appointment-date").value = appointment.appointment_date || "";
+  document.getElementById("appointment-time").value = appointment.appointment_time || "";
+  document.getElementById("duration").value = appointment.duration || "";
+  document.getElementById("notes").value = appointment.notes || "";
+  document.getElementById("status").value = appointment.status || "scheduled";
+  // Set patient and service selects (wait for options to be loaded)
+  setTimeout(() => {
+    document.getElementById("patient-select").value = appointment.patient_id || "";
+    document.getElementById("service-select").value = appointment.service_id || "";
+  }, 100);
+}
+
+// Show generic action modal
+function showActionModal(title, html) {
+  document.getElementById("actionModalTitle").textContent = title;
+  document.getElementById("actionModalContent").innerHTML = html;
+  openModal("actionModal");
 }
 
 function viewAppointmentDetails(appointmentId) {
@@ -195,11 +297,16 @@ function editAppointment(appointmentId) {
   fetch(`api/appointments.php?id=${appointmentId}`)
     .then((response) => response.json())
     .then((data) => {
-      if (data.success) {
-        populateAppointmentForm(data.appointment)
-        openModal("appointmentModal")
+      // Try both data.appointment and data.data for compatibility
+      const appointment = data.appointment || data.data;
+      if (data.success && appointment) {
+        // Ensure patients/services are loaded before populating the form
+        Promise.all([loadPatients(), loadServices()]).then(() => {
+          populateAppointmentForm(appointment);
+          openModal("appointmentModal");
+        });
       } else {
-        showToast(data.error || "Error loading appointment", "error")
+        showToast(data.error || "Error loading appointment", "error");
       }
     })
     .catch((error) => {

@@ -11,7 +11,7 @@ if (!isLoggedIn()) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($method) {
     case 'GET':
@@ -37,7 +37,7 @@ switch ($method) {
 }
 
 function handleGetInvoices() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         if (isset($_GET['id'])) {
@@ -46,9 +46,9 @@ function handleGetInvoices() {
                        CONCAT(p.first_name, ' ', p.last_name) as patient_name
                 FROM invoices i
                 JOIN patients p ON i.patient_id = p.id
-                WHERE i.id = ? AND i.clinic_id = ?
+                WHERE i.id = ? AND i.user_id = ?
             ");
-            $stmt->execute([$_GET['id'], $clinic_id]);
+            $stmt->execute([$_GET['id'], $user_id]);
             $invoice = $stmt->fetch();
             
             if ($invoice) {
@@ -72,10 +72,10 @@ function handleGetInvoices() {
                 SELECT i.*, p.first_name, p.last_name
                 FROM invoices i
                 JOIN patients p ON i.patient_id = p.id
-                WHERE i.clinic_id = ?
+                WHERE i.user_id = ?
                 ORDER BY i.created_at DESC
             ");
-            $stmt->execute([$clinic_id]);
+            $stmt->execute([$user_id]);
             $invoices = $stmt->fetchAll();
             echo json_encode($invoices);
         }
@@ -86,7 +86,7 @@ function handleGetInvoices() {
 }
 
 function handleCreateInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $required_fields = ['patient_id', 'invoice_number'];
@@ -128,13 +128,13 @@ function handleCreateInvoice() {
         // Insert invoice
         $stmt = $pdo->prepare("
             INSERT INTO invoices (
-                clinic_id, patient_id, invoice_number, subtotal, tax_amount, 
+                user_id, patient_id, invoice_number, subtotal, tax_amount, 
                 discount_amount, total_amount, status, due_date, payment_method, notes, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $stmt->execute([
-            $clinic_id,
+            $user_id,
             $_POST['patient_id'],
             $_POST['invoice_number'],
             $subtotal,
@@ -166,11 +166,8 @@ function handleCreateInvoice() {
         }
         
         // Log activity
-        $stmt = $pdo->prepare("
-            INSERT INTO activities (clinic_id, type, title, description, created_at)
-            VALUES (?, 'payment_received', 'New invoice created', ?, NOW())
-        ");
-        $stmt->execute([$clinic_id, 'Invoice ' . $_POST['invoice_number'] . ' created']);
+        $stmt = $pdo->prepare("INSERT INTO activities (user_id, type, title, description, created_at) VALUES (?, 'payment_received', 'New invoice created', ?, NOW())");
+        $stmt->execute([$user_id, 'Invoice ' . $_POST['invoice_number'] . ' created']);
         
         echo json_encode([
             'success' => true,
@@ -185,7 +182,7 @@ function handleCreateInvoice() {
 }
 
 function handleUpdateInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -197,8 +194,8 @@ function handleUpdateInvoice() {
         }
         
         // Verify invoice belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
@@ -247,11 +244,8 @@ function handleUpdateInvoice() {
         
         // Add activity log for payment
         if (isset($input['status']) && $input['status'] === 'paid') {
-            $stmt = $pdo->prepare("
-                INSERT INTO activities (clinic_id, type, title, description, created_at)
-                VALUES (?, 'payment_received', 'Payment received', ?, NOW())
-            ");
-            $stmt->execute([$clinic_id, 'Payment received for invoice #' . $input['id']]);
+            $stmt = $pdo->prepare("INSERT INTO activities (user_id, type, title, description, created_at) VALUES (?, 'payment_received', 'Payment received', ?, NOW())");
+            $stmt->execute([$user_id, 'Payment received for invoice #' . $input['id']]);
         }
         
         echo json_encode([
@@ -267,7 +261,7 @@ function handleUpdateInvoice() {
 }
 
 function handleDeleteInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -279,8 +273,8 @@ function handleDeleteInvoice() {
         }
         
         // Verify invoice belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
@@ -304,7 +298,7 @@ function handleDeleteInvoice() {
 }
 
 function handleDownloadInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     if (!isset($_GET['id'])) {
         http_response_code(400);
@@ -319,10 +313,10 @@ function handleDownloadInvoice() {
                    c.name as clinic_name, c.address as clinic_address, c.phone as clinic_phone
             FROM invoices i
             JOIN patients p ON i.patient_id = p.id
-            JOIN clinics c ON i.clinic_id = c.id
-            WHERE i.id = ? AND i.clinic_id = ?
+            JOIN clinics c ON i.user_id = c.id
+            WHERE i.id = ? AND i.user_id = ?
         ");
-        $stmt->execute([$_GET['id'], $clinic_id]);
+        $stmt->execute([$_GET['id'], $user_id]);
         $invoice = $stmt->fetch();
         
         if (!$invoice) {

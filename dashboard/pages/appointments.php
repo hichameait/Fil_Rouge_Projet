@@ -1,14 +1,13 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$dentist_id = $_SESSION['user_id'];
 
 // Handle filters
-$date_filter = $_GET['date'] ?? date('Y-m-d');
+$date_filter = $_GET['date'] ?? '';
 $status_filter = $_GET['status'] ?? '';
-$dentist_filter = $_GET['dentist'] ?? '';
 
-// Get appointments for the selected date
-$where_conditions = ["a.clinic_id = ?"];
-$params = [$clinic_id];
+// Get appointments for the selected filters
+$where_conditions = ["a.dentist_id = ?"];
+$params = [$dentist_id];
 
 if (!empty($date_filter)) {
     $where_conditions[] = "DATE(a.appointment_date) = ?";
@@ -18,11 +17,6 @@ if (!empty($date_filter)) {
 if (!empty($status_filter)) {
     $where_conditions[] = "a.status = ?";
     $params[] = $status_filter;
-}
-
-if (!empty($dentist_filter)) {
-    $where_conditions[] = "a.dentist_id = ?";
-    $params[] = $dentist_filter;
 }
 
 $where_clause = implode(' AND ', $where_conditions);
@@ -35,27 +29,34 @@ $appointments = fetchAll(
      JOIN services s ON a.service_id = s.id
      JOIN users u ON a.dentist_id = u.id
      WHERE $where_clause
-     ORDER BY a.appointment_time",
+     ORDER BY a.appointment_date DESC, a.appointment_time DESC",
     $params
 );
 
-// Get dentists for filter
-$dentists = fetchAll(
-    "SELECT id, first_name, last_name FROM users WHERE clinic_id = ? AND role = 'dentist' AND status = 'active'",
-    [$clinic_id]
-);
-
-// Get appointment statistics for the day
-$stats = fetchOne(
-    "SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
-     FROM appointments 
-     WHERE clinic_id = ? AND DATE(appointment_date) = ?",
-    [$clinic_id, $date_filter]
-);
+// Statistics: show for all appointments (or filtered date if filter is set)
+if (!empty($date_filter)) {
+    $stats = fetchOne(
+        "SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+         FROM appointments 
+         WHERE dentist_id = ? AND DATE(appointment_date) = ?",
+        [$dentist_id, $date_filter]
+    );
+} else {
+    $stats = fetchOne(
+        "SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+         FROM appointments 
+         WHERE dentist_id = ?",
+        [$dentist_id]
+    );
+}
 ?>
 
 <div class="container p-6">
@@ -76,7 +77,7 @@ $stats = fetchOne(
                 <input type="hidden" name="page" value="appointments">
                 <div>
                     <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input type="date" id="date" name="date" value="<?= $date_filter ?>"
+                    <input type="date" id="date" name="date" value="<?= htmlspecialchars($date_filter) ?>"
                         class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
@@ -89,17 +90,6 @@ $stats = fetchOne(
                         <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed</option>
                         <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                         <option value="no_show" <?= $status_filter === 'no_show' ? 'selected' : '' ?>>No Show</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="dentist" class="block text-sm font-medium text-gray-700 mb-1">Dentist</label>
-                    <select id="dentist" name="dentist" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Dentists</option>
-                        <?php foreach ($dentists as $dentist): ?>
-                            <option value="<?= $dentist['id'] ?>" <?= $dentist_filter == $dentist['id'] ? 'selected' : '' ?>>
-                                Dr. <?= $dentist['first_name'] . ' ' . $dentist['last_name'] ?>
-                            </option>
-                        <?php endforeach; ?>
                     </select>
                 </div>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
@@ -156,7 +146,11 @@ $stats = fetchOne(
         <div class="bg-white rounded-lg shadow">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">
-                    Appointments for <?= date('F j, Y', strtotime($date_filter)) ?>
+                    <?php if (!empty($date_filter)): ?>
+                        Appointments for <?= date('F j, Y', strtotime($date_filter)) ?>
+                    <?php else: ?>
+                        All Appointments
+                    <?php endif; ?>
                 </h3>
             </div>
             <?php if (empty($appointments)): ?>
@@ -190,6 +184,9 @@ $stats = fetchOne(
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z" />
                                             </svg>
                                             Dr. <?= $appointment['dentist_first_name'] . ' ' . $appointment['dentist_last_name'] ?>
+                                        </p>
+                                        <p class="text-xs text-gray-400">
+                                            <?= date('Y-m-d', strtotime($appointment['appointment_date'])) ?>
                                         </p>
                                     </div>
                                 </div>
@@ -275,13 +272,13 @@ $stats = fetchOne(
                                                 </svg>
                                             </button>
                                             <div class="appointment-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="view">
+                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 view-details-btn" data-action="view" data-id="<?= $appointment['id'] ?>">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2 2a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                     </svg>
                                                     View Details
                                                 </a>
-                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="edit">
+                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 edit-appointment-btn" data-action="edit" data-id="<?= $appointment['id'] ?>">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" />
                                                     </svg>
@@ -328,3 +325,291 @@ $stats = fetchOne(
         </div>
     </div>
 </div>
+
+<!-- Appointment Details Modal -->
+<div id="appointmentDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+        <button id="closeAppointmentModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Appointment Details</h2>
+        <div id="appointmentDetailsContent">
+            <div class="text-center text-gray-400">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Edit Modal -->
+<div id="appointmentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+        <button id="closeAppointmentEditModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Edit Appointment</h2>
+        <form id="appointmentForm">
+            <input type="hidden" name="id" id="appointment-id">
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Patient</label>
+                <select id="patient-select" name="patient_id" class="w-full border rounded px-2 py-1"></select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Service</label>
+                <select id="service-select" name="service_id" class="w-full border rounded px-2 py-1"></select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Date</label>
+                <input type="date" id="appointment-date" name="appointment_date" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Time</label>
+                <input type="time" id="appointment-time" name="appointment_time" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Duration (minutes)</label>
+                <input type="number" id="duration" name="duration" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Status</label>
+                <select id="status" name="status" class="w-full border rounded px-2 py-1">
+                    <option value="scheduled">Scheduled</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="no_show">No Show</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Notes</label>
+                <textarea id="notes" name="notes" class="w-full border rounded px-2 py-1"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Generic Action Modal (for call, sms, etc.) -->
+<div id="actionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button id="closeActionModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 id="actionModalTitle" class="text-xl font-bold mb-4"></h2>
+        <div id="actionModalContent"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Menu toggle functionality
+    document.querySelectorAll('.appointment-menu-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('.appointment-menu').forEach(function(menu) {
+                menu.classList.add('hidden');
+            });
+            var menu = this.nextElementSibling;
+            menu.classList.toggle('hidden');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.appointment-menu').forEach(function(menu) {
+            menu.classList.add('hidden');
+        });
+    });
+
+    // View Details action
+    document.querySelectorAll('[data-action="view"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var appointmentId = this.getAttribute('data-id');
+            var modal = document.getElementById('appointmentDetailsModal');
+            var content = document.getElementById('appointmentDetailsContent');
+            
+            // Hide menus and show modal
+            document.querySelectorAll('.appointment-menu').forEach(menu => menu.classList.add('hidden'));
+            modal.classList.remove('hidden');
+            
+            // Load appointment data
+            fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.appointment) {
+                        var a = data.appointment;
+                        content.innerHTML = `
+                            <div class="mb-2"><span class="font-semibold">Patient:</span> ${a.first_name} ${a.last_name}</div>
+                            <div class="mb-2"><span class="font-semibold">Phone:</span> ${a.phone}</div>
+                            <div class="mb-2"><span class="font-semibold">Service:</span> ${a.service_name}</div>
+                            <div class="mb-2"><span class="font-semibold">Date:</span> ${a.appointment_date}</div>
+                            <div class="mb-2"><span class="font-semibold">Time:</span> ${a.appointment_time}</div>
+                            <div class="mb-2"><span class="font-semibold">Duration:</span> ${a.duration} minutes</div>
+                            <div class="mb-2"><span class="font-semibold">Status:</span> ${a.status.toUpperCase()}</div>
+                            <div class="mb-2"><span class="font-semibold">Notes:</span> ${a.notes || '<span class="text-gray-400">No notes</span>'}</div>
+                        `;
+                    }
+                });
+        });
+    });
+
+    // Edit action
+    document.querySelectorAll('[data-action="edit"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var appointmentId = this.getAttribute('data-id');
+            
+            // First load patients and services
+            Promise.all([
+                fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php').then(r => r.json()),
+                fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php').then(r => r.json())
+            ]).then(([patients, services]) => {
+                // Populate selects
+                document.getElementById('patient-select').innerHTML = patients.map(p => 
+                    `<option value="${p.id}">${p.first_name} ${p.last_name}</option>`
+                ).join('');
+                
+                document.getElementById('service-select').innerHTML = services.map(s => 
+                    `<option value="${s.id}">${s.name}</option>`
+                ).join('');
+
+                // Then load appointment data
+                return fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`);
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.appointment) {
+                    var a = data.appointment;
+                    document.getElementById('appointment-id').value = a.id;
+                    document.getElementById('patient-select').value = a.patient_id;
+                    document.getElementById('service-select').value = a.service_id;
+                    document.getElementById('appointment-date').value = a.appointment_date;
+                    document.getElementById('appointment-time').value = a.appointment_time;
+                    document.getElementById('duration').value = a.duration;
+                    document.getElementById('status').value = a.status;
+                    document.getElementById('notes').value = a.notes || '';
+                    
+                    // Show modal
+                    document.querySelectorAll('.appointment-menu').forEach(menu => menu.classList.add('hidden'));
+                    document.getElementById('appointmentModal').classList.remove('hidden');
+                }
+            });
+        });
+    });
+
+    // Close modal logic
+    document.getElementById('closeAppointmentModal').addEventListener('click', function(e) {
+        document.getElementById('appointmentDetailsModal').classList.add('hidden');
+    });
+
+    document.getElementById('closeAppointmentEditModal').addEventListener('click', function(e) {
+        document.getElementById('appointmentModal').classList.add('hidden');
+    });
+
+    ['appointmentDetailsModal', 'appointmentModal'].forEach(modalId => {
+        document.getElementById(modalId).addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+    });
+
+    // Generic action modal logic (for call, sms, etc.)
+    document.querySelectorAll('[data-action]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            // Only handle call/sms here, skip edit/view (handled above)
+            var action = link.getAttribute('data-action');
+            if (action === 'edit' || action === 'view') return;
+            e.preventDefault();
+            e.stopPropagation();
+            var appointmentId = link.getAttribute('data-id');
+            var modal = document.getElementById('actionModal');
+            var title = document.getElementById('actionModalTitle');
+            var content = document.getElementById('actionModalContent');
+            modal.classList.remove('hidden');
+            title.innerHTML = action.charAt(0).toUpperCase() + action.slice(1) + ' Appointment';
+            content.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
+
+            // Load specific content based on action
+            if (action === 'call' || action === 'sms') {
+                content.innerHTML = `
+                    <div class="text-center">
+                        <p class="text-gray-700 mb-4">Are you sure you want to ${action} this patient?</p>
+                        <div class="flex justify-center gap-4">
+                            <button id="confirmActionBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md" data-action="${action}" data-id="${appointmentId}">
+                                Yes, ${action.charAt(0).toUpperCase() + action.slice(1)}
+                            </button>
+                            <button id="cancelActionBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = '<div class="text-red-500 text-center">Invalid action.</div>';
+            }
+        });
+    });
+
+    // Close action modal logic
+    document.getElementById('closeActionModal').addEventListener('click', function() {
+        document.getElementById('actionModal').classList.add('hidden');
+    });
+    document.getElementById('actionModal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
+    });
+
+    // Confirm action (call, sms, etc.)
+    document.getElementById('actionModalContent').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'confirmActionBtn') {
+            var action = e.target.getAttribute('data-action');
+            var appointmentId = e.target.getAttribute('data-id');
+            // Implement the actual call or sms logic here
+            console.log('Confirmed action:', action, 'for appointment ID:', appointmentId);
+            // Close the modal after action
+            closeModal('actionModal');
+        }
+    });
+});
+
+// Modal open/close helpers
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+// Helper functions to load patients/services for the edit form
+function loadPatients() {
+    return fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php')
+        .then(function(response) { return response.json(); })
+        .then(function(patients) {
+            var select = document.getElementById('patient-select');
+            if (select) {
+                select.innerHTML = '<option value="">Select a patient</option>';
+                patients.forEach(function(patient) {
+                    var option = document.createElement('option');
+                    option.value = patient.id;
+                    option.textContent = patient.first_name + ' ' + patient.last_name;
+                    select.appendChild(option);
+                });
+            }
+        });
+}
+function loadServices() {
+    return fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php')
+        .then(function(response) { return response.json(); })
+        .then(function(services) {
+            var select = document.getElementById('service-select');
+            if (select) {
+                select.innerHTML = '<option value="">Select a service</option>';
+                services.forEach(function(service) {
+                    var option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = service.name + ' - $' + service.price;
+                    option.setAttribute('data-duration', service.duration);
+                    select.appendChild(option);
+                });
+            }
+        });
+}

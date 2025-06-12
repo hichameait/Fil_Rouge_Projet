@@ -1,23 +1,23 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id']; // Assuming user_id is in session
 
 // Get all service categories
 $categories = fetchAll(
-    "SELECT * FROM service_categories WHERE clinic_id = ? ORDER BY name",
-    [$clinic_id]
+    "SELECT * FROM service_categories ORDER BY name"
 );
 
-// Get all services
+// Get all base services and join with dentist_service_prices for this user
 $services = fetchAll(
-    "SELECT s.*, sc.name as category_name 
-     FROM services s 
-     LEFT JOIN service_categories sc ON s.category_id = sc.id 
-     WHERE s.clinic_id = ? 
-     ORDER BY sc.name, s.name",
-    [$clinic_id]
+    "SELECT bs.*, sc.name as category_name, dsp.price as custom_price
+     FROM base_services bs
+     LEFT JOIN service_categories sc ON bs.category_id = sc.id
+     LEFT JOIN dentist_service_prices dsp ON dsp.base_service_id = bs.id AND dsp.user_id = ?
+     WHERE bs.is_active = 1
+     ORDER BY sc.name, bs.name",
+    [$user_id]
 );
 ?>
-
 <div class="space-y-6">
     <!-- Header -->
     <!-- <div class="flex justify-between items-center">
@@ -71,7 +71,7 @@ $services = fetchAll(
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (MAD)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -80,39 +80,25 @@ $services = fetchAll(
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div>
-                                    <div class="text-sm font-medium text-gray-900"><?= $service['name'] ?></div>
-                                    <div class="text-sm text-gray-500"><?= $service['description'] ?></div>
+                                    <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($service['name']) ?></div>
+                                    <div class="text-sm text-gray-500"><?= htmlspecialchars($service['description']) ?></div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?= $service['category_name'] ?>
+                                <?= htmlspecialchars($service['category_name']) ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?= $service['duration'] ?> min
+                                <?= (int)$service['duration'] ?> min
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                $<?= number_format($service['price'], 2) ?>
+                                <form method="post" action="./dashboard/api/save_service_price.php" class="inline price-form">
+                                    <input type="hidden" name="base_service_id" value="<?= $service['id'] ?>">
+                                    <input type="number" step="0.01" min="0" name="price" value="<?= $service['custom_price'] !== null ? $service['custom_price'] : '' ?>" placeholder="Set price" style="width:80px;" required>
+                                    <button type="submit" class="ml-2 text-blue-600 hover:text-blue-900">Save</button>
+                                </form>
                             </td>
-                            <!-- <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $service['requires_tooth_selection'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' ?>">
-                                    <?= $service['requires_tooth_selection'] ? 'Yes' : 'No' ?>
-                                </span>
-                            </td> -->
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="text-blue-600 hover:text-blue-900 mr-3 edit-service-btn"
-                                        data-id="<?= $service['id'] ?>"
-                                        data-name="<?= htmlspecialchars($service['name']) ?>"
-                                        data-description="<?= htmlspecialchars($service['description']) ?>"
-                                        data-category="<?= $service['category_id'] ?>"
-                                        data-duration="<?= $service['duration'] ?>"
-                                        data-price="<?= $service['price'] ?>"
-                                        data-tooth="<?= $service['requires_tooth_selection'] ?>">
-                                    Edit
-                                </button>
-                                <button class="text-red-600 hover:text-red-900 delete-service-btn"
-                                        data-id="<?= $service['id'] ?>">
-                                    Delete
-                                </button>
+                                <!-- Optionally add more actions here -->
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -292,5 +278,27 @@ $services = fetchAll(
             });
         });
     })();
+
+    // AJAX price update for service price form
+    const forms = document.querySelectorAll('.price-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch('/Fil_Rouge_Projet/dashboard/api/save_service_price.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Price updated');
+                } else {
+                    alert(data.error || 'Error updating price');
+                }
+            })
+            .catch(() => alert('Network error'));
+        });
+    });
     </script>
 </div>

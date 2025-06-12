@@ -1,5 +1,5 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 // Handle filters
 $status_filter = $_GET['status'] ?? '';
@@ -8,8 +8,8 @@ $date_to = $_GET['date_to'] ?? '';
 $search = $_GET['search'] ?? '';
 
 // Build query
-$where_conditions = ["i.clinic_id = ?"];
-$params = [$clinic_id];
+$where_conditions = ["i.user_id = ?"];
+$params = [$user_id];
 
 if (!empty($status_filter)) {
     $where_conditions[] = "i.status = ?";
@@ -52,8 +52,8 @@ $stats = fetchOne(
         SUM(CASE WHEN status = 'overdue' THEN total_amount ELSE 0 END) as overdue_amount,
         SUM(CASE WHEN status IN ('draft', 'sent') THEN total_amount ELSE 0 END) as pending_amount
      FROM invoices 
-     WHERE clinic_id = ?",
-    [$clinic_id]
+     WHERE user_id = ?",
+    [$user_id]
 );
 ?>
 

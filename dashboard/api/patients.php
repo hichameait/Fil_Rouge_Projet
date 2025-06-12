@@ -11,7 +11,7 @@ if (!isLoggedIn()) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($method) {
     case 'GET':
@@ -33,12 +33,12 @@ switch ($method) {
 }
 
 function handleGetPatients() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         if (isset($_GET['id'])) {
-            $stmt = $pdo->prepare("SELECT * FROM patients WHERE id = ? AND clinic_id = ?");
-            $stmt->execute([$_GET['id'], $clinic_id]);
+            $stmt = $pdo->prepare("SELECT * FROM patients WHERE id = ? AND user_id = ?");
+            $stmt->execute([$_GET['id'], $user_id]);
             $patient = $stmt->fetch();
             
             if ($patient) {
@@ -48,8 +48,8 @@ function handleGetPatients() {
                 echo json_encode(['error' => 'Patient not found']);
             }
         } else {
-            $stmt = $pdo->prepare("SELECT id, first_name, last_name FROM patients WHERE clinic_id = ? AND status = 'active' ORDER BY first_name, last_name");
-            $stmt->execute([$clinic_id]);
+            $stmt = $pdo->prepare("SELECT id, first_name, last_name FROM patients WHERE user_id = ? AND status = 'active' ORDER BY first_name, last_name");
+            $stmt->execute([$user_id]);
             $patients = $stmt->fetchAll();
             echo json_encode($patients);
         }
@@ -60,7 +60,7 @@ function handleGetPatients() {
 }
 
 function handleCreatePatient() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $required_fields = ['first_name', 'last_name', 'phone'];
@@ -73,17 +73,17 @@ function handleCreatePatient() {
         }
         
         // Generate patient number
-        $patient_number = generatePatientNumber($clinic_id);
+        $patient_number = generatePatientNumber($user_id);
         
         $stmt = $pdo->prepare("
             INSERT INTO patients (
-                clinic_id, patient_number, first_name, last_name, email, phone, 
+                user_id, patient_number, first_name, last_name, email, phone, 
                 date_of_birth, gender, address, medical_history, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $stmt->execute([
-            $clinic_id,
+            $user_id,
             $patient_number,
             $_POST['first_name'],
             $_POST['last_name'],
@@ -98,11 +98,8 @@ function handleCreatePatient() {
         $patient_id = $pdo->lastInsertId();
         
         // Log activity
-        $stmt = $pdo->prepare("
-            INSERT INTO activities (clinic_id, type, title, description, created_at)
-            VALUES (?, 'patient_added', 'New patient registered', ?, NOW())
-        ");
-        $stmt->execute([$clinic_id, $_POST['first_name'] . ' ' . $_POST['last_name'] . ' was registered']);
+        $stmt = $pdo->prepare("INSERT INTO activities (user_id, type, title, description, created_at) VALUES (?, 'patient_added', 'New patient registered', ?, NOW())");
+        $stmt->execute([$user_id, $_POST['first_name'] . ' ' . $_POST['last_name'] . ' was registered']);
         
         echo json_encode([
             'success' => true,
@@ -117,7 +114,7 @@ function handleCreatePatient() {
 }
 
 function handleUpdatePatient() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -128,9 +125,9 @@ function handleUpdatePatient() {
             return;
         }
         
-        // Verify patient belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM patients WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        // Verify patient belongs to user
+        $stmt = $pdo->prepare("SELECT id FROM patients WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Patient not found']);
@@ -170,7 +167,7 @@ function handleUpdatePatient() {
 }
 
 function handleDeletePatient() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -181,9 +178,9 @@ function handleDeletePatient() {
             return;
         }
         
-        // Verify patient belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM patients WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        // Verify patient belongs to user
+        $stmt = $pdo->prepare("SELECT id FROM patients WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Patient not found']);
@@ -202,11 +199,11 @@ function handleDeletePatient() {
     }
 }
 
-function generatePatientNumber($clinic_id) {
+function generatePatientNumber($user_id) {
     global $pdo;
     
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM patients WHERE clinic_id = ?");
-    $stmt->execute([$clinic_id]);
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM patients WHERE user_id = ?");
+    $stmt->execute([$user_id]);
     $count = $stmt->fetch()['count'];
     
     return 'P' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);

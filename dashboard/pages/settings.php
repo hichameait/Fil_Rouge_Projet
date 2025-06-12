@@ -1,17 +1,17 @@
 <?php
 requireRole('admin');
 
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
-// Get clinic information
-$clinic = fetchOne(
-    "SELECT * FROM clinics WHERE id = ?",
-    [$clinic_id]
+// Get settings information
+$settings = fetchOne(
+    "SELECT * FROM settings WHERE user_id = ?",
+    [$user_id]
 );
 
 $users = fetchAll(
-    "SELECT * FROM users WHERE clinic_id = ? ORDER BY role, first_name",
-    [$clinic_id]
+    "SELECT * FROM users WHERE id = ? ORDER BY role, first_name",
+    [$user_id]
 );
 
 $success_message = $error_message = '';
@@ -19,8 +19,8 @@ $success_message = $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     switch ($action) {
-        case 'update_clinic':
-            updateClinicSettings();
+        case 'update_settings':
+            updateSettings();
             break;
         case 'add_user':
             addUser();
@@ -34,14 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-function updateClinicSettings() {
-    global $pdo, $clinic_id, $success_message, $error_message;
+function updateSettings() {
+    global $pdo, $user_id, $success_message, $error_message;
     try {
         $stmt = $pdo->prepare("
-            UPDATE clinics SET 
-                name = ?, address = ?, phone = ?, email = ?, website = ?,
-                logo_url = ?, description = ?, working_hours = ?, updated_at = NOW()
-            WHERE id = ?
+            UPDATE settings SET 
+                clinic_name = ?, clinic_address = ?, clinic_phone = ?, clinic_email = ?, clinic_website = ?,
+                clinic_logo_url = ?, clinic_description = ?, working_hours = ?, updated_at = NOW()
+            WHERE user_id = ?
         ");
         $working_hours = json_encode([
             'monday' => ['open' => $_POST['monday_open'], 'close' => $_POST['monday_close'], 'closed' => isset($_POST['monday_closed'])],
@@ -61,16 +61,16 @@ function updateClinicSettings() {
             $_POST['clinic_logo_url'] ?? '',
             $_POST['clinic_description'] ?? '',
             $working_hours,
-            $clinic_id
+            $user_id
         ]);
-        $success_message = "Clinic settings updated successfully!";
+        $success_message = "Settings updated successfully!";
     } catch (Exception $e) {
-        $error_message = "Error updating clinic settings: " . $e->getMessage();
+        $error_message = "Error updating settings: " . $e->getMessage();
     }
 }
 
 // Parse working hours
-$working_hours = json_decode($clinic['working_hours'] ?? '{}', true);
+$working_hours = json_decode($settings['working_hours'] ?? '{}', true);
 ?>
 
 <div class="space-y-6">
@@ -111,43 +111,43 @@ $working_hours = json_decode($clinic['working_hours'] ?? '{}', true);
         <!-- Clinic Information Tab -->
         <div id="clinic-tab" class="settings-tab-content p-6">
             <form method="POST" class="space-y-6">
-                <input type="hidden" name="action" value="update_clinic">
+                <input type="hidden" name="action" value="update_settings">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="clinic_name" class="block text-sm font-medium text-gray-700 mb-1">Clinic Name</label>
-                        <input type="text" id="clinic_name" name="clinic_name" value="<?= htmlspecialchars($clinic['name']) ?>"
+                        <input type="text" id="clinic_name" name="clinic_name" value="<?= htmlspecialchars($settings['clinic_name']) ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="clinic_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input type="tel" id="clinic_phone" name="clinic_phone" value="<?= htmlspecialchars($clinic['phone']) ?>"
+                        <input type="tel" id="clinic_phone" name="clinic_phone" value="<?= htmlspecialchars($settings['clinic_phone']) ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="clinic_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="clinic_email" name="clinic_email" value="<?= htmlspecialchars($clinic['email']) ?>"
+                        <input type="email" id="clinic_email" name="clinic_email" value="<?= htmlspecialchars($settings['clinic_email']) ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="clinic_website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                        <input type="url" id="clinic_website" name="clinic_website" value="<?= htmlspecialchars($clinic['website'] ?? '') ?>"
+                        <input type="url" id="clinic_website" name="clinic_website" value="<?= htmlspecialchars($settings['clinic_website'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="clinic_logo_url" class="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                        <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($clinic['logo_url'] ?? '') ?>"
+                        <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="clinic_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <textarea id="clinic_description" name="clinic_description" rows="2"
-                                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($clinic['description'] ?? '') ?></textarea>
+                                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($settings['clinic_description'] ?? '') ?></textarea>
                     </div>
                 </div>
                 <div>
                     <label for="clinic_address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                     <textarea id="clinic_address" name="clinic_address" rows="3"
-                              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($clinic['address']) ?></textarea>
+                              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><?= htmlspecialchars($settings['clinic_address']) ?></textarea>
                 </div>
                 <!-- Working Hours -->
                 <div>

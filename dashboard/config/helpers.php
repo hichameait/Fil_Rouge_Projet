@@ -14,7 +14,7 @@ if (!defined('VALID_ACTIVITY_TYPES')) {
 }
 
 if (!function_exists('logActivity')) {
-    function logActivity($pdo, $clinic_id, $type, $title, $description) {
+    function logActivity($pdo, $user_id, $type, $title, $description) {
         if (!in_array($type, VALID_ACTIVITY_TYPES)) {
             error_log("Invalid activity type: $type");
             return false;
@@ -22,10 +22,10 @@ if (!function_exists('logActivity')) {
         
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO activities (clinic_id, type, title, description, created_at)
+                INSERT INTO activities (user_id, type, title, description, created_at)
                 VALUES (?, ?, ?, ?, NOW())
             ");
-            return $stmt->execute([$clinic_id, $type, $title, $description]);
+            return $stmt->execute([$user_id, $type, $title, $description]);
         } catch (PDOException $e) {
             error_log("Error logging activity: " . $e->getMessage());
             return false;

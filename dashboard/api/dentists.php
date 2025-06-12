@@ -10,11 +10,10 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$clinic_id = $_SESSION['clinic_id'];
-
 try {
-    $stmt = $pdo->prepare("SELECT id, first_name, last_name FROM users WHERE clinic_id = ? AND role = 'dentist' AND status = 'active' ORDER BY first_name, last_name");
-    $stmt->execute([$clinic_id]);
+    // Get all users with role 'dentist' and status 'active'
+    $stmt = $pdo->prepare("SELECT id, first_name, last_name FROM users WHERE role = 'dentist' AND status = 'active'");
+    $stmt->execute();
     $dentists = $stmt->fetchAll();
     echo json_encode($dentists);
 } catch (PDOException $e) {
