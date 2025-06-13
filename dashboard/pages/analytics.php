@@ -23,11 +23,12 @@ $monthly_revenue = fetchAll(
 
 // Get top services (using new normalized schema)
 $top_services = fetchAll(
-    "SELECT s.name, COUNT(a.id) as appointment_count, SUM(s.price) as total_revenue
+    "SELECT bs.name, COUNT(a.id) as appointment_count, SUM(dsp.price) as total_revenue
      FROM appointments a
-     JOIN services s ON a.service_id = s.id
+     JOIN base_services bs ON a.base_service_id = bs.id
+     LEFT JOIN dentist_service_prices dsp ON dsp.base_service_id = bs.id AND dsp.user_id = a.user_id
      WHERE a.user_id = ? AND YEAR(a.appointment_date) = YEAR(CURDATE())
-     GROUP BY s.id
+     GROUP BY bs.id
      ORDER BY appointment_count DESC
      LIMIT 10",
     [$user_id]

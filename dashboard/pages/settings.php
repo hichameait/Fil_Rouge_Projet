@@ -1,7 +1,7 @@
 <?php
-requireRole('admin');
 
 $user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['role'] ?? 'guest';
 
 // Check if settings row exists, if not, create it
 $settings = fetchOne(
@@ -23,18 +23,44 @@ if (!$settings) {
 }
 
 // Fetch all users for this clinic, including the current user even if clinic_id is NULL
-$users = fetchAll(
-    "SELECT * FROM users WHERE (clinic_id = ? OR id = ?) ORDER BY role, first_name",
-    [$settings['id'], $user_id]
-);
+try {
+    // Check if 'clinic_id' column exists in users table
+    $columns = $pdo->query("SHOW COLUMNS FROM users LIKE 'clinic_id'")->fetch();
+    if ($columns) {
+        // If clinic_id exists, use it for filtering
+        $users = fetchAll(
+            "SELECT * FROM users WHERE (clinic_id = ? OR id = ?) ORDER BY role, first_name",
+            [$settings['id'], $user_id]
+        );
+    } else {
+        // If clinic_id does not exist, just fetch users for this user_id
+        $users = fetchAll(
+            "SELECT * FROM users WHERE id = ? ORDER BY role, first_name",
+            [$user_id]
+        );
+    }
+} catch (Exception $e) {
+    // Fallback: fetch only the current user
+    $users = fetchAll(
+        "SELECT * FROM users WHERE id = ? ORDER BY role, first_name",
+        [$user_id]
+    );
+}
 
 $success_message = $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     switch ($action) {
-        case 'update_settings':
-            updateSettings();
+        case 'update_clinic':
+            updateClinicInfo();
+            // Reload settings after update
+            $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
+            break;
+        case 'update_automation':
+            updateAutomationSettings();
+            // Reload settings after update
+            $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
             break;
         case 'add_user':
             addUser();
@@ -48,38 +74,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-function updateSettings() {
+function post_val($key, $default = '') {
+    return isset($_POST[$key]) ? $_POST[$key] : $default;
+}
+
+function updateClinicInfo() {
     global $pdo, $user_id, $success_message, $error_message;
     try {
+        $days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+        $working_hours = [];
+        foreach ($days as $day) {
+            $working_hours[$day] = [
+                'open' => post_val($day . '_open', '09:00'),
+                'close' => post_val($day . '_close', '17:00'),
+                'closed' => isset($_POST[$day . '_closed'])
+            ];
+        }
         $stmt = $pdo->prepare("
             UPDATE settings SET 
                 clinic_name = ?, clinic_address = ?, clinic_phone = ?, clinic_email = ?, clinic_website = ?,
                 clinic_logo_url = ?, clinic_description = ?, working_hours = ?, updated_at = NOW()
             WHERE user_id = ?
         ");
-        $working_hours = json_encode([
-            'monday' => ['open' => $_POST['monday_open'], 'close' => $_POST['monday_close'], 'closed' => isset($_POST['monday_closed'])],
-            'tuesday' => ['open' => $_POST['tuesday_open'], 'close' => $_POST['tuesday_close'], 'closed' => isset($_POST['tuesday_closed'])],
-            'wednesday' => ['open' => $_POST['wednesday_open'], 'close' => $_POST['wednesday_close'], 'closed' => isset($_POST['wednesday_closed'])],
-            'thursday' => ['open' => $_POST['thursday_open'], 'close' => $_POST['thursday_close'], 'closed' => isset($_POST['thursday_closed'])],
-            'friday' => ['open' => $_POST['friday_open'], 'close' => $_POST['friday_close'], 'closed' => isset($_POST['friday_closed'])],
-            'saturday' => ['open' => $_POST['saturday_open'], 'close' => $_POST['saturday_close'], 'closed' => isset($_POST['saturday_closed'])],
-            'sunday' => ['open' => $_POST['sunday_open'], 'close' => $_POST['sunday_close'], 'closed' => isset($_POST['sunday_closed'])]
-        ]);
         $stmt->execute([
-            $_POST['clinic_name'],
-            $_POST['clinic_address'],
-            $_POST['clinic_phone'],
-            $_POST['clinic_email'],
-            $_POST['clinic_website'],
-            $_POST['clinic_logo_url'] ?? '',
-            $_POST['clinic_description'] ?? '',
-            $working_hours,
+            post_val('clinic_name'),
+            post_val('clinic_address'),
+            post_val('clinic_phone'),
+            post_val('clinic_email'),
+            post_val('clinic_website'),
+            post_val('clinic_logo_url'),
+            post_val('clinic_description'),
+            json_encode($working_hours),
             $user_id
         ]);
-        $success_message = "Settings updated successfully!";
+        $success_message = "Clinic information updated successfully!";
     } catch (Exception $e) {
-        $error_message = "Error updating settings: " . $e->getMessage();
+        $error_message = "Error updating clinic info: " . $e->getMessage();
+    }
+}
+
+function updateAutomationSettings() {
+    global $pdo, $user_id, $success_message, $error_message;
+    try {
+        $automation_settings = [
+            'sms_reminders_enabled' => isset($_POST['sms_reminders_enabled']),
+            'sms_reminder_time' => post_val('sms_reminder_time', '24'),
+            'sms_provider' => post_val('sms_provider', 'twilio'),
+            'sms_sender_name' => post_val('sms_sender_name', ''),
+            'sms_api_key' => post_val('sms_api_key', ''),
+            'email_notifications_enabled' => isset($_POST['email_notifications_enabled']),
+            'email_appointment_confirmation' => isset($_POST['email_appointment_confirmation']),
+            'email_appointment_reminder' => isset($_POST['email_appointment_reminder']),
+            'email_payment_receipt' => isset($_POST['email_payment_receipt']),
+            'email_treatment_summary' => isset($_POST['email_treatment_summary']),
+            'email_custom_template' => isset($_POST['email_custom_template']),
+            'chatbot_enabled' => isset($_POST['chatbot_enabled']),
+        ];
+        $stmt = $pdo->prepare("
+            UPDATE settings SET 
+                automation_settings = ?, updated_at = NOW()
+            WHERE user_id = ?
+        ");
+        $stmt->execute([
+            json_encode($automation_settings),
+            $user_id
+        ]);
+        $success_message = "Automation settings updated successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error updating automation settings: " . $e->getMessage();
     }
 }
 
@@ -113,8 +175,27 @@ function addUser() {
     }
 }
 
-// Parse working hours
+// Parse working hours and automation settings (always after $settings is up-to-date)
 $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
+
+// Ensure $automation_settings is always an array with all keys (for checkbox checked state)
+$default_automation_settings = [
+    'sms_reminders_enabled' => false,
+    'sms_reminder_time' => '24',
+    'sms_provider' => 'twilio',
+    'sms_sender_name' => '',
+    'sms_api_key' => '',
+    'email_notifications_enabled' => false,
+    'email_appointment_confirmation' => false,
+    'email_appointment_reminder' => false,
+    'email_payment_receipt' => false,
+    'email_treatment_summary' => false,
+    'email_custom_template' => false,
+    'chatbot_enabled' => false,
+];
+$automation_settings = json_decode($settings['automation_settings'] ?? '{}', true);
+if (!is_array($automation_settings)) $automation_settings = [];
+$automation_settings = array_merge($default_automation_settings, $automation_settings);
 ?>
 
 <div class="space-y-6">
@@ -155,7 +236,7 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
         <!-- Clinic Information Tab -->
         <div id="clinic-tab" class="settings-tab-content p-6">
             <form method="POST" class="space-y-6">
-                <input type="hidden" name="action" value="update_settings">
+                <input type="hidden" name="action" value="update_clinic">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="clinic_name" class="block text-sm font-medium text-gray-700 mb-1">Clinic Name</label>
@@ -265,8 +346,7 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                                                 $lastInitial = isset($user['last_name']) && $user['last_name'] ? substr($user['last_name'], 0, 1) : '';
                                                 echo strtoupper($firstInitial . $lastInitial);
                                                 ?>
-                                            </span>
-                                        </div>
+                                            </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">
                                                 <?php
@@ -333,8 +413,8 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
         <!-- Automation Tab -->
         <div id="automation-tab" class="settings-tab-content p-6 hidden">
             <h3 class="text-lg font-medium text-gray-900 mb-6">Automation Settings</h3>
-            <div class="space-y-6">
-                <!-- SMS Reminders -->
+            <form method="POST" class="space-y-6">
+                <input type="hidden" name="action" value="update_automation">
                 <div class="bg-gray-50 rounded-lg p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
@@ -342,35 +422,38 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                             <p class="text-sm text-gray-600">Automatically send SMS reminders to patients</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="sms_reminders_enabled">
+                            <input type="checkbox" class="sr-only peer" id="sms_reminders_enabled" name="sms_reminders_enabled"
+                                <?= $automation_settings['sms_reminders_enabled'] ? 'checked' : '' ?>>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Time</label>
-                            <select class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                <option value="24">24 hours before</option>
-                                <option value="12">12 hours before</option>
-                                <option value="6">6 hours before</option>
-                                <option value="2">2 hours before</option>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_reminder_time">
+                                <option value="24" <?= $automation_settings['sms_reminder_time'] == '24' ? 'selected' : '' ?>>24 hours before</option>
+                                <option value="12" <?= $automation_settings['sms_reminder_time'] == '12' ? 'selected' : '' ?>>12 hours before</option>
+                                <option value="6" <?= $automation_settings['sms_reminder_time'] == '6' ? 'selected' : '' ?>>6 hours before</option>
+                                <option value="2" <?= $automation_settings['sms_reminder_time'] == '2' ? 'selected' : '' ?>>2 hours before</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">SMS Provider</label>
-                            <select class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                <option value="twilio">Twilio</option>
-                                <option value="nexmo">Nexmo</option>
-                                <option value="custom">Custom Provider</option>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_provider">
+                                <option value="twilio" <?= $automation_settings['sms_provider'] == 'twilio' ? 'selected' : '' ?>>Twilio</option>
+                                <option value="nexmo" <?= $automation_settings['sms_provider'] == 'nexmo' ? 'selected' : '' ?>>Nexmo</option>
+                                <option value="custom" <?= $automation_settings['sms_provider'] == 'custom' ? 'selected' : '' ?>>Custom Provider</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Clinic Name">
+                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_sender_name"
+                                value="<?= htmlspecialchars($automation_settings['sms_sender_name']) ?>">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="API Key">
+                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_api_key"
+                                value="<?= htmlspecialchars($automation_settings['sms_api_key']) ?>">
                         </div>
                     </div>
                 </div>
@@ -382,29 +465,35 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                             <p class="text-sm text-gray-600">Send email notifications for various events</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="email_notifications_enabled">
+                            <input type="checkbox" class="sr-only peer" id="email_notifications_enabled" name="email_notifications_enabled"
+                                <?= $automation_settings['email_notifications_enabled'] ? 'checked' : '' ?>>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
                     <div class="space-y-3">
                         <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_appointment_confirmation"
+                                <?= $automation_settings['email_appointment_confirmation'] ? 'checked' : '' ?>>
                             <span class="ml-2 text-sm text-gray-700">New appointment confirmations</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_appointment_reminder"
+                                <?= $automation_settings['email_appointment_reminder'] ? 'checked' : '' ?>>
                             <span class="ml-2 text-sm text-gray-700">Appointment reminders</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_payment_receipt"
+                                <?= $automation_settings['email_payment_receipt'] ? 'checked' : '' ?>>
                             <span class="ml-2 text-sm text-gray-700">Payment receipts</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_treatment_summary"
+                                <?= $automation_settings['email_treatment_summary'] ? 'checked' : '' ?>>
                             <span class="ml-2 text-sm text-gray-700">Treatment summaries</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_custom_template"
+                                <?= $automation_settings['email_custom_template'] ? 'checked' : '' ?>>
                             <span class="ml-2 text-sm text-gray-700">Custom email template</span>
                         </label>
                     </div>
@@ -417,7 +506,8 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                             <p class="text-sm text-gray-600">AI-powered chatbot for patient inquiries</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="chatbot_enabled">
+                            <input type="checkbox" class="sr-only peer" id="chatbot_enabled" name="chatbot_enabled"
+                                <?= $automation_settings['chatbot_enabled'] ? 'checked' : '' ?>>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
@@ -432,7 +522,12 @@ $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
                         </ul>
                     </div>
                 </div>
-            </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Save Automation Settings
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- Notifications Tab -->

@@ -20,7 +20,7 @@
                 
                 <div>
                     <label for="service-select" class="block text-sm font-medium text-gray-700 mb-1">Service</label>
-                    <select id="service-select" name="service_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <select id="service-select" name="base_service_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                         <option value="">Select a service</option>
                         <!-- JS will populate this dynamically -->
                     </select>
@@ -77,7 +77,7 @@ fetch('/Fil_Rouge_Projet/dashboard/api/services.php')
         if (Array.isArray(data)) {
             data.forEach(service => {
                 const opt = document.createElement('option');
-                opt.value = service.id;
+                opt.value = service.id; // base_service_id
                 opt.textContent = service.name;
                 select.appendChild(opt);
             });

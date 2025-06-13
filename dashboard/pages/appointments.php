@@ -22,11 +22,11 @@ if (!empty($status_filter)) {
 $where_clause = implode(' AND ', $where_conditions);
 
 $appointments = fetchAll(
-    "SELECT a.*, p.first_name, p.last_name, p.phone, s.name as service_name, 
+    "SELECT a.*, p.first_name, p.last_name, p.phone, bs.name as service_name, 
             u.first_name as dentist_first_name, u.last_name as dentist_last_name
      FROM appointments a
      JOIN patients p ON a.patient_id = p.id
-     JOIN services s ON a.service_id = s.id
+     JOIN base_services bs ON a.base_service_id = bs.id
      JOIN users u ON a.dentist_id = u.id
      WHERE $where_clause
      ORDER BY a.appointment_date DESC, a.appointment_time DESC",

@@ -1,13 +1,12 @@
 <?php
 $user_id = $_SESSION['user_id'];
-$user_id = $_SESSION['user_id']; // Assuming user_id is in session
 
 // Get all service categories
 $categories = fetchAll(
     "SELECT * FROM service_categories ORDER BY name"
 );
 
-// Get all base services and join with dentist_service_prices for this user
+// Get all base services (global and custom) and join with dentist_service_prices for this user
 $services = fetchAll(
     "SELECT bs.*, sc.name as category_name, dsp.price as custom_price
      FROM base_services bs

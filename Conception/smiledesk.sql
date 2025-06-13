@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 12, 2025 at 11:42 AM
+-- Generation Time: Jun 13, 2025 at 11:36 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -80,7 +80,7 @@ CREATE TABLE `appointments` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this appointment',
   `patient_id` int(11) NOT NULL,
-  `service_id` int(11) NOT NULL,
+  `base_service_id` int(11) NOT NULL,
   `dentist_id` int(11) NOT NULL,
   `appointment_date` date NOT NULL,
   `appointment_time` time NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE `appointments` (
 -- Dumping data for table `appointments`
 --
 
-INSERT INTO `appointments` (`id`, `user_id`, `patient_id`, `service_id`, `dentist_id`, `appointment_date`, `appointment_time`, `duration`, `selected_teeth`, `status`, `notes`, `reminder_sent`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointments` (`id`, `user_id`, `patient_id`, `base_service_id`, `dentist_id`, `appointment_date`, `appointment_time`, `duration`, `selected_teeth`, `status`, `notes`, `reminder_sent`, `created_at`, `updated_at`) VALUES
 (1, 2, 1, 1, 2, '2025-06-08', '09:00:00', 60, NULL, 'scheduled', NULL, 0, '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (2, 2, 2, 3, 2, '2025-06-08', '10:30:00', 45, NULL, 'scheduled', NULL, 0, '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (3, 2, 3, 8, 2, '2025-06-08', '14:00:00', 30, NULL, 'scheduled', NULL, 0, '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
@@ -217,7 +217,7 @@ CREATE TABLE `invoices` (
   `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this invoice',
   `patient_id` int(11) NOT NULL,
   `appointment_id` int(11) DEFAULT NULL,
-  `service_id` int(11) DEFAULT NULL,
+  `base_service_id` int(11) DEFAULT NULL,
   `invoice_number` varchar(50) NOT NULL,
   `description` varchar(255) NOT NULL,
   `quantity` int(11) DEFAULT 1,
@@ -239,7 +239,7 @@ CREATE TABLE `invoices` (
 -- Dumping data for table `invoices`
 --
 
-INSERT INTO `invoices` (`id`, `user_id`, `patient_id`, `appointment_id`, `service_id`, `invoice_number`, `description`, `quantity`, `unit_price`, `subtotal`, `tax_amount`, `discount_amount`, `total_amount`, `status`, `due_date`, `paid_date`, `payment_method`, `notes`, `created_at`, `updated_at`) VALUES
+INSERT INTO `invoices` (`id`, `user_id`, `patient_id`, `appointment_id`, `base_service_id`, `invoice_number`, `description`, `quantity`, `unit_price`, `subtotal`, `tax_amount`, `discount_amount`, `total_amount`, `status`, `due_date`, `paid_date`, `payment_method`, `notes`, `created_at`, `updated_at`) VALUES
 (2, 2, 5, NULL, 3, 'INV-20250609-473', 'Tooth-colored filling', 1, 200.00, 200.00, 0.00, 0.00, 200.00, 'paid', '2025-06-11', '2025-06-09 16:02:03', 'insurance', '', '2025-06-09 17:01:45', '2025-06-09 17:02:03');
 
 -- --------------------------------------------------------
@@ -280,40 +280,6 @@ INSERT INTO `patients` (`id`, `user_id`, `patient_number`, `first_name`, `last_n
 (3, 2, 'P003', 'Omar', 'Tazi', 'omar.tazi@email.com', '+212-663-345678', '1978-11-08', 'male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (4, 2, 'P004', 'Aicha', 'Mansouri', 'aicha.mansouri@email.com', '+212-664-456789', '1995-09-12', 'female', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (5, 2, 'P0005', 'LEA MAELYS', 'NIEZ', 'midelt-city2021@solarunited.net', '0631318173', '1991-05-09', 'female', '17 Rue Saint-Jean\r\nLANGON', NULL, NULL, '', NULL, NULL, NULL, 'active', '2025-06-09 11:48:48', '2025-06-09 11:48:48');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `services`
---
-
-CREATE TABLE `services` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this service',
-  `category_id` int(11) DEFAULT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `duration` int(11) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `requires_tooth_selection` tinyint(1) DEFAULT 0,
-  `status` enum('active','inactive') DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `services`
---
-
-INSERT INTO `services` (`id`, `user_id`, `category_id`, `name`, `description`, `duration`, `price`, `requires_tooth_selection`, `status`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, 'Regular Cleaning', 'Professional dental cleaning and examination', 60, 150.00, 0, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(2, 2, 1, 'Deep Cleaning', 'Scaling and root planing', 90, 300.00, 0, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(3, 2, 2, 'Composite Filling', 'Tooth-colored filling', 45, 200.00, 1, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(4, 2, 2, 'Dental Crown', 'Porcelain crown placement', 90, 1200.00, 1, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(5, 2, 2, 'Root Canal Treatment', 'Endodontic therapy', 120, 800.00, 1, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(6, 2, 4, 'Tooth Extraction', 'Simple tooth extraction', 30, 240.00, 0, 'active', '2025-06-08 19:00:43', '2025-06-09 17:20:29'),
-(7, 2, 3, 'Teeth Whitening', 'Professional whitening treatment', 60, 400.00, 0, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(8, 2, 1, 'Consultation', 'Initial examination and consultation', 30, 75.00, 0, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43');
 
 -- --------------------------------------------------------
 
@@ -359,15 +325,16 @@ CREATE TABLE `settings` (
   `working_hours` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`working_hours`)),
   `other_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`other_settings`)),
   `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `automation_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`automation_settings`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `settings`
 --
 
-INSERT INTO `settings` (`id`, `user_id`, `clinic_name`, `clinic_address`, `clinic_phone`, `clinic_email`, `clinic_website`, `clinic_logo_url`, `clinic_description`, `working_hours`, `other_settings`, `created_at`, `updated_at`) VALUES
-(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43');
+INSERT INTO `settings` (`id`, `user_id`, `clinic_name`, `clinic_address`, `clinic_phone`, `clinic_email`, `clinic_website`, `clinic_logo_url`, `clinic_description`, `working_hours`, `other_settings`, `created_at`, `updated_at`, `automation_settings`) VALUES
+(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43', NULL);
 
 -- --------------------------------------------------------
 
@@ -451,18 +418,19 @@ CREATE TABLE `users` (
   `status` enum('active','inactive') DEFAULT 'active',
   `last_login` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `clinic_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `role`, `phone`, `specialization`, `license_number`, `status`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Admin', 'User', 'admin', NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:30'),
-(2, 'dr.smith@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'John', 'Smith', 'dentist', NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:27'),
-(3, 'assistant@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Sarah', 'Johnson', 'assistant', NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:23'),
-(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, 'active', '2025-06-10 22:29:37', '2025-06-08 19:06:29', '2025-06-10 22:29:37');
+INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `role`, `phone`, `address`, `specialization`, `license_number`, `status`, `last_login`, `created_at`, `updated_at`, `clinic_id`) VALUES
+(1, 'admin@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Admin', 'User', 'admin', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:30', NULL),
+(2, 'dr.smith@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'John', 'Smith', 'dentist', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:27', NULL),
+(3, 'assistant@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Sarah', 'Johnson', 'assistant', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:23', NULL),
+(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, NULL, 'active', '2025-06-10 22:29:37', '2025-06-08 19:06:29', '2025-06-10 22:29:37', NULL);
 
 --
 -- Indexes for dumped tables
@@ -482,7 +450,7 @@ ALTER TABLE `appointments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `patient_id` (`patient_id`),
-  ADD KEY `service_id` (`service_id`),
+  ADD KEY `service_id` (`base_service_id`),
   ADD KEY `dentist_id` (`dentist_id`);
 
 --
@@ -527,7 +495,7 @@ ALTER TABLE `invoices`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `patient_id` (`patient_id`),
   ADD KEY `appointment_id` (`appointment_id`),
-  ADD KEY `service_id` (`service_id`);
+  ADD KEY `service_id` (`base_service_id`);
 
 --
 -- Indexes for table `patients`
@@ -536,14 +504,6 @@ ALTER TABLE `patients`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `patient_number` (`patient_number`),
   ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `services`
---
-ALTER TABLE `services`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `category_id` (`category_id`);
 
 --
 -- Indexes for table `service_categories`
@@ -586,7 +546,8 @@ ALTER TABLE `subscription_plans`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `users_ibfk_2` (`clinic_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -641,12 +602,6 @@ ALTER TABLE `patients`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT for table `services`
---
-ALTER TABLE `services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
 -- AUTO_INCREMENT for table `service_categories`
 --
 ALTER TABLE `service_categories`
@@ -698,7 +653,7 @@ ALTER TABLE `activities`
 ALTER TABLE `appointments`
   ADD CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`base_service_id`) REFERENCES `base_services` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `appointments_ibfk_4` FOREIGN KEY (`dentist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
@@ -737,20 +692,13 @@ ALTER TABLE `invoices`
   ADD CONSTRAINT `invoices_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `invoices_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `invoices_ibfk_3` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `invoices_ibfk_4` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `invoices_ibfk_4` FOREIGN KEY (`base_service_id`) REFERENCES `base_services` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `patients`
 --
 ALTER TABLE `patients`
   ADD CONSTRAINT `patients_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `services`
---
-ALTER TABLE `services`
-  ADD CONSTRAINT `services_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `services_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `service_categories` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `service_categories`
@@ -777,8 +725,30 @@ ALTER TABLE `sms_logs`
 --
 ALTER TABLE `subscriptions`
   ADD CONSTRAINT `subscriptions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`clinic_id`) REFERENCES `settings` (`id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- Add missing invoice_items table
+CREATE TABLE `invoice_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `invoice_id` int(11) NOT NULL,
+  `service_id` int(11) DEFAULT NULL,
+  `description` varchar(255) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `invoice_id` (`invoice_id`),
+  KEY `service_id` (`service_id`),
+  CONSTRAINT `invoice_items_ibfk_1` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `invoice_items_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `base_services` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

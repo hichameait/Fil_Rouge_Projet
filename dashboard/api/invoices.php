@@ -39,7 +39,6 @@ switch ($method) {
 
 function handleGetInvoices() {
     global $pdo, $user_id;
-    
     try {
         if (isset($_GET['id'])) {
             $stmt = $pdo->prepare("
@@ -51,18 +50,18 @@ function handleGetInvoices() {
             ");
             $stmt->execute([$_GET['id'], $user_id]);
             $invoice = $stmt->fetch();
-            
+
             if ($invoice) {
-                // Get invoice items
+                // Get invoice items (update to use base_services)
                 $stmt = $pdo->prepare("
-                    SELECT ii.*, s.name as service_name
+                    SELECT ii.*, bs.name as service_name
                     FROM invoice_items ii
-                    LEFT JOIN services s ON ii.service_id = s.id
+                    LEFT JOIN base_services bs ON ii.service_id = bs.id
                     WHERE ii.invoice_id = ?
                 ");
                 $stmt->execute([$invoice['id']]);
                 $invoice['items'] = $stmt->fetchAll();
-                
+
                 echo json_encode($invoice);
             } else {
                 http_response_code(404);
@@ -326,11 +325,11 @@ function handleDownloadInvoice() {
             return;
         }
 
-        // Get invoice items
+        // Get invoice items (update to use base_services)
         $stmt = $pdo->prepare("
-            SELECT ii.*, s.name as service_name
+            SELECT ii.*, bs.name as service_name
             FROM invoice_items ii
-            LEFT JOIN services s ON ii.service_id = s.id
+            LEFT JOIN base_services bs ON ii.service_id = bs.id
             WHERE ii.invoice_id = ?
         ");
         $stmt->execute([$invoice['id']]);

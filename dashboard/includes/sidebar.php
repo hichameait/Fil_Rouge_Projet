@@ -6,6 +6,14 @@ if (isset($_SESSION['user_id'])) {
     $stmt->execute([$_SESSION['user_id']]);
     $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
 }
+// Ensure $current_page is always set (prevents PHP notice and ensures sidebar works)
+if (!isset($current_page)) {
+    $current_page = $_GET['page'] ?? 'dashboard';
+}
+// Ensure $_SESSION['role'] is set for menu rendering
+if (!isset($_SESSION['role']) && $currentUser && isset($currentUser['role'])) {
+    $_SESSION['role'] = $currentUser['role'];
+}
 ?>
 <aside class="hidden md:flex h-screen w-64 flex-col border-r bg-white">
     <div class="p-6 border-b">

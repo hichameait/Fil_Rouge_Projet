@@ -1,4 +1,6 @@
 <?php
+// Make sure there is no whitespace or output before this file's opening <?php tag
+
 function isLoggedIn() {
     // Check if user is logged in
     return isset($_SESSION['email']) && isset($_SESSION['auth']) && $_SESSION['auth'] === true;
@@ -63,20 +65,46 @@ function login($email, $password) {
 }
 
 function logout() {
-    session_destroy();
-    header('Location: login.php');
-    exit;
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        // Remove all session variables
+        $_SESSION = [];
+        // Destroy the session cookie if it exists
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+    }
+    if (!headers_sent()) {
+        header('Location: login.php');
+        exit;
+    } else {
+        echo "<script>window.location.href='login.php';</script>";
+        exit;
+    }
 }
 
 function requireRole($roles) {
     if (!isLoggedIn()) {
-        header('Location: login.php');
-        exit;
+        if (!headers_sent()) {
+            header('Location: login.php');
+            exit;
+        } else {
+            echo "<script>window.location.href='login.php';</script>";
+            exit;
+        }
     }
-    
     if (!in_array($_SESSION['role'], (array)$roles)) {
-        header('Location: index.php?error=access_denied');
-        exit;
+        if (!headers_sent()) {
+            header('Location: index.php?error=access_denied');
+            exit;
+        } else {
+            echo "<script>window.location.href='index.php?error=access_denied';</script>";
+            exit;
+        }
     }
 }
 ?>

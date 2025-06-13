@@ -46,12 +46,12 @@ function handleGet($pdo) {
             $stmt = $pdo->prepare("
                 SELECT a.*, 
                        p.first_name, p.last_name, p.phone,
-                       s.name as service_name,
+                       bs.name as service_name,
                        u.first_name as dentist_first_name, 
                        u.last_name as dentist_last_name
                 FROM appointments a
                 JOIN patients p ON a.patient_id = p.id
-                JOIN services s ON a.service_id = s.id
+                JOIN base_services bs ON a.base_service_id = bs.id
                 JOIN users u ON a.dentist_id = u.id
                 WHERE a.id = ? AND a.user_id = ?
             ");
@@ -79,10 +79,10 @@ function handleGet($pdo) {
                 $where_conditions[] = "a.dentist_id = ?";
                 $params[] = $_GET['dentist_id'];
             }
-            $query = "SELECT a.*, p.first_name, p.last_name, s.name as service_name, u.first_name as dentist_name
+            $query = "SELECT a.*, p.first_name, p.last_name, bs.name as service_name, u.first_name as dentist_name
                       FROM appointments a
                       JOIN patients p ON a.patient_id = p.id
-                      JOIN services s ON a.service_id = s.id
+                      JOIN base_services bs ON a.base_service_id = bs.id
                       JOIN users u ON a.dentist_id = u.id
                       WHERE " . implode(' AND ', $where_conditions) . "
                       ORDER BY a.appointment_date, a.appointment_time";
@@ -110,7 +110,7 @@ function handlePost($pdo) {
         }
         // Get service details (remove user_id filter if services are global)
         $stmt = $pdo->prepare("
-            SELECT duration, price FROM services WHERE id = ?
+            SELECT duration FROM base_services WHERE id = ?
         ");
         $stmt->execute([$_POST['service_id']]);
         $service = $stmt->fetch();
@@ -131,17 +131,17 @@ function handlePost($pdo) {
             echo json_encode(['error' => 'Time slot already booked']);
             return;
         }
-        // Insert appointment
+        // Insert appointment (update columns to use base_service_id)
         $stmt = $pdo->prepare("
             INSERT INTO appointments (
-                user_id, patient_id, service_id, dentist_id, appointment_date, 
+                user_id, patient_id, base_service_id, dentist_id, appointment_date, 
                 appointment_time, duration, selected_teeth, notes, status, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', NOW())
         ");
         $stmt->execute([
             $user_id,
             $_POST['patient_id'],
-            $_POST['service_id'],
+            $_POST['service_id'], // this should be base_service_id from the form
             $user_id, // dentist_id is the logged-in user
             $_POST['appointment_date'],
             $_POST['appointment_time'],
