@@ -1,5 +1,5 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 $search = $_GET['search'] ?? '';
 $status_filter = $_GET['status'] ?? '';
@@ -7,8 +7,8 @@ $page = max(1, intval($_GET['p'] ?? 1));
 $per_page = 20;
 $offset = ($page - 1) * $per_page;
 
-$where_conditions = ["p.clinic_id = ?"];
-$params = [$clinic_id];
+$where_conditions = ["p.user_id = ?"];
+$params = [$user_id];
 
 if (!empty($search)) {
     $where_conditions[] = "(p.first_name LIKE ? OR p.last_name LIKE ? OR p.email LIKE ? OR p.phone LIKE ? OR p.patient_number LIKE ?)";

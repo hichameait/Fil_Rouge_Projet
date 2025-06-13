@@ -1,3 +1,8 @@
+<?php
+// Load subscription plans from DB
+require_once __DIR__ . '/dashboard/config/database.php';
+$plans = fetchAll("SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY price ASC");
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -263,98 +268,31 @@
                     <p>Évolue selon vos besoins, pas selon vos dépenses.</p>
                 </div>
                 <div class="plans">
-                    <div class="text">
-                        <h2>SmileDesk Platforme</h2>
-                        <h3>All in One Dashboard</h3>
-                        <p>Ne ratez plus aucun rendez-vous</p>
-                    </div>
-                    <div class="plan-1">
-                        <div class="plan-header">
-                            <h3>Plan Essentiel</h3>
-                            <p>Idéal pour les dentistes indépendants qui veulent digitaliser les bases.</p>
-                            <div class="price">
-                                <h2>149 MAD</h2>
-                                <span>/ mois</span>
+                    <?php foreach ($plans as $plan): ?>
+                        <div class="plan-box" style="margin-bottom:2rem;display:inline-block;vertical-align:top;width:340px;max-width:100%;background:#fff;border-radius:16px;box-shadow:0 2px 8px #0001;padding:24px 20px 20px 20px;margin-right:24px;">
+                            <div class="plan-header">
+                                <h3><?= htmlspecialchars($plan['name']) ?></h3>
+                                <p><?= htmlspecialchars($plan['description']) ?></p>
+                                <div class="price">
+                                    <h2><?= number_format($plan['price'], 2) ?> MAD</h2>
+                                    <span>/ <?= $plan['duration_months'] > 1 ? $plan['duration_months'] . ' mois' : 'mois' ?></span>
+                                </div>
                             </div>
+                            <div class="features">
+                                <?php $features = json_decode($plan['features'], true); if ($features): ?>
+                                    <?php foreach ($features as $feature): ?>
+                                        <div class="feature-item">
+                                            <img src="./assets/check-blue.svg" alt="check">
+                                            <span><?= htmlspecialchars($feature) ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                            <button class="plan-btn" onclick="window.location.href='./auth/register.php?plan_id=<?= $plan['id'] ?>'">
+                                <?= $plan['id'] == 1 ? 'Essai gratuit 7 jours' : 'Essayer le ' . htmlspecialchars($plan['name']) ?>
+                            </button>
                         </div>
-                        <div class="features">
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Prise de rendez-vous en ligne</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Création et envoi de factures PDF</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Rappels automatiques</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Fiche patient (historique de soins)</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Stockage sécurisé des documents</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Impression de factures et ordonnances</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Tableau de bord simplifié</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-blue.svg" alt="check">
-                                <span>Support client en français & darija</span>
-                            </div>
-                        </div>
-                        <button class="plan-btn">Essai gratuit 7 jours</button>
-                    </div>
-                    <div class="plan-2">
-                        <div class="plan-header">
-                            <h3>Plan Pro</h3>
-                            <p>Pour les cabinets qui veulent automatiser davantage et suivre leurs performances.</p>
-                            <div class="price">
-                                <h2>249 MAD</h2>
-                                <span>/ mois</span>
-                            </div>
-                        </div>
-                        <div class="features">
-                            <p class="pro-label">Everything included in Startup, plus:</p>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Gestion avancée du calendrier</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Suivi des paiements</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Statistiques détaillées</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Suggestions intelligentes</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Gestion des tarifs et remises</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Accès multi-utilisateurs</span>
-                            </div>
-                            <div class="feature-item">
-                                <img src="./assets/check-gray.svg" alt="check">
-                                <span>Export Excel / PDF complet</span>
-                            </div>
-                        </div>
-                        <button class="plan-btn pro">Essayer le Plan Pro</button>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </section>

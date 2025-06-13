@@ -1,14 +1,13 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$dentist_id = $_SESSION['user_id'];
 
 // Handle filters
-$date_filter = $_GET['date'] ?? date('Y-m-d');
+$date_filter = $_GET['date'] ?? '';
 $status_filter = $_GET['status'] ?? '';
-$dentist_filter = $_GET['dentist'] ?? '';
 
-// Get appointments for the selected date
-$where_conditions = ["a.clinic_id = ?"];
-$params = [$clinic_id];
+// Get appointments for the selected filters
+$where_conditions = ["a.dentist_id = ?"];
+$params = [$dentist_id];
 
 if (!empty($date_filter)) {
     $where_conditions[] = "DATE(a.appointment_date) = ?";
@@ -20,42 +19,44 @@ if (!empty($status_filter)) {
     $params[] = $status_filter;
 }
 
-if (!empty($dentist_filter)) {
-    $where_conditions[] = "a.dentist_id = ?";
-    $params[] = $dentist_filter;
-}
-
 $where_clause = implode(' AND ', $where_conditions);
 
 $appointments = fetchAll(
-    "SELECT a.*, p.first_name, p.last_name, p.phone, s.name as service_name, 
+    "SELECT a.*, p.first_name, p.last_name, p.phone, bs.name as service_name, 
             u.first_name as dentist_first_name, u.last_name as dentist_last_name
      FROM appointments a
      JOIN patients p ON a.patient_id = p.id
-     JOIN services s ON a.service_id = s.id
+     JOIN base_services bs ON a.base_service_id = bs.id
      JOIN users u ON a.dentist_id = u.id
      WHERE $where_clause
-     ORDER BY a.appointment_time",
+     ORDER BY a.appointment_date DESC, a.appointment_time DESC",
     $params
 );
 
-// Get dentists for filter
-$dentists = fetchAll(
-    "SELECT id, first_name, last_name FROM users WHERE clinic_id = ? AND role = 'dentist' AND status = 'active'",
-    [$clinic_id]
-);
-
-// Get appointment statistics for the day
-$stats = fetchOne(
-    "SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
-     FROM appointments 
-     WHERE clinic_id = ? AND DATE(appointment_date) = ?",
-    [$clinic_id, $date_filter]
-);
+// Statistics: show for all appointments (or filtered date if filter is set)
+if (!empty($date_filter)) {
+    $stats = fetchOne(
+        "SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+         FROM appointments 
+         WHERE dentist_id = ? AND DATE(appointment_date) = ?",
+        [$dentist_id, $date_filter]
+    );
+} else {
+    $stats = fetchOne(
+        "SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'scheduled' THEN 1 END) as scheduled,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+         FROM appointments 
+         WHERE dentist_id = ?",
+        [$dentist_id]
+    );
+}
 ?>
 
 <div class="container p-6">
@@ -76,7 +77,7 @@ $stats = fetchOne(
                 <input type="hidden" name="page" value="appointments">
                 <div>
                     <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input type="date" id="date" name="date" value="<?= $date_filter ?>"
+                    <input type="date" id="date" name="date" value="<?= htmlspecialchars($date_filter) ?>"
                         class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
@@ -89,17 +90,6 @@ $stats = fetchOne(
                         <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed</option>
                         <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                         <option value="no_show" <?= $status_filter === 'no_show' ? 'selected' : '' ?>>No Show</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="dentist" class="block text-sm font-medium text-gray-700 mb-1">Dentist</label>
-                    <select id="dentist" name="dentist" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Dentists</option>
-                        <?php foreach ($dentists as $dentist): ?>
-                            <option value="<?= $dentist['id'] ?>" <?= $dentist_filter == $dentist['id'] ? 'selected' : '' ?>>
-                                Dr. <?= $dentist['first_name'] . ' ' . $dentist['last_name'] ?>
-                            </option>
-                        <?php endforeach; ?>
                     </select>
                 </div>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
@@ -156,7 +146,11 @@ $stats = fetchOne(
         <div class="bg-white rounded-lg shadow">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">
-                    Appointments for <?= date('F j, Y', strtotime($date_filter)) ?>
+                    <?php if (!empty($date_filter)): ?>
+                        Appointments for <?= date('F j, Y', strtotime($date_filter)) ?>
+                    <?php else: ?>
+                        All Appointments
+                    <?php endif; ?>
                 </h3>
             </div>
             <?php if (empty($appointments)): ?>
@@ -190,6 +184,9 @@ $stats = fetchOne(
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z" />
                                             </svg>
                                             Dr. <?= $appointment['dentist_first_name'] . ' ' . $appointment['dentist_last_name'] ?>
+                                        </p>
+                                        <p class="text-xs text-gray-400">
+                                            <?= date('Y-m-d', strtotime($appointment['appointment_date'])) ?>
                                         </p>
                                     </div>
                                 </div>
@@ -275,13 +272,13 @@ $stats = fetchOne(
                                                 </svg>
                                             </button>
                                             <div class="appointment-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="view">
+                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 view-details-btn" data-action="view" data-id="<?= $appointment['id'] ?>">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2 2a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                     </svg>
                                                     View Details
                                                 </a>
-                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="edit">
+                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 edit-appointment-btn" data-action="edit" data-id="<?= $appointment['id'] ?>">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" />
                                                     </svg>
@@ -328,3 +325,197 @@ $stats = fetchOne(
         </div>
     </div>
 </div>
+
+<!-- Appointment Details Modal -->
+<div id="appointmentDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+        <button id="closeAppointmentModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Appointment Details</h2>
+        <div id="appointmentDetailsContent">
+            <div class="text-center text-gray-400">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Edit Modal -->
+<div id="appointmentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+        <button id="closeAppointmentEditModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Edit Appointment</h2>
+        <form id="appointmentForm">
+            <input type="hidden" name="id" id="appointment-id">
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Patient</label>
+                <select id="patient-select" name="patient_id" class="w-full border rounded px-2 py-1"></select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Service</label>
+                <select id="service-select" name="service_id" class="w-full border rounded px-2 py-1"></select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Date</label>
+                <input type="date" id="appointment-date" name="appointment_date" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Time</label>
+                <input type="time" id="appointment-time" name="appointment_time" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Duration (minutes)</label>
+                <input type="number" id="duration" name="duration" class="w-full border rounded px-2 py-1">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Status</label>
+                <select id="status" name="status" class="w-full border rounded px-2 py-1">
+                    <option value="scheduled">Scheduled</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="no_show">No Show</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Notes</label>
+                <textarea id="notes" name="notes" class="w-full border rounded px-2 py-1"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Generic Action Modal (for call, sms, etc.) -->
+<div id="actionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button id="closeActionModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h2 id="actionModalTitle" class="text-xl font-bold mb-4"></h2>
+        <div id="actionModalContent"></div>
+    </div>
+</div>
+
+<script>
+// Centralized modal logic for appointments
+function openModal(modalId) {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // --- MODAL CLOSE BUTTONS ---
+    document.getElementById('closeAppointmentModal').addEventListener('click', function() {
+        closeModal('appointmentDetailsModal');
+    });
+    document.getElementById('closeAppointmentEditModal').addEventListener('click', function() {
+        closeModal('appointmentModal');
+    });
+    // --- MODAL BACKDROP CLICK ---
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
+
+    // --- APPOINTMENT MENU LOGIC ---
+    document.querySelectorAll('.appointment-menu-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Close all other menus first
+            document.querySelectorAll('.appointment-menu').forEach(function(menu) {
+                menu.classList.add('hidden');
+            });
+            var menu = this.nextElementSibling;
+            if (menu) menu.classList.toggle('hidden');
+        });
+    });
+    // Close menus when clicking outside any menu or button
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.appointment-menu') && !e.target.closest('.appointment-menu-btn')) {
+            document.querySelectorAll('.appointment-menu').forEach(function(menu) {
+                menu.classList.add('hidden');
+            });
+        }
+    });
+
+    // --- APPOINTMENT MENU ACTIONS ---
+    document.querySelectorAll('.appointment-menu a[data-action]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const action = this.getAttribute('data-action');
+            const appointmentId = this.getAttribute('data-id');
+            // Always close all menus before opening modal
+            document.querySelectorAll('.appointment-menu').forEach(menu => menu.classList.add('hidden'));
+            if (action === 'view') {
+                // Load and show view modal
+                openModal('appointmentDetailsModal');
+                const content = document.getElementById('appointmentDetailsContent');
+                content.innerHTML = '<div class="text-center text-gray-400">Loading...</div>';
+                fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.appointment) {
+                            var a = data.appointment;
+                            content.innerHTML = `
+                                <div class="mb-2"><span class="font-semibold">Patient:</span> ${a.first_name} ${a.last_name}</div>
+                                <div class="mb-2"><span class="font-semibold">Phone:</span> ${a.phone}</div>
+                                <div class="mb-2"><span class="font-semibold">Service:</span> ${a.service_name}</div>
+                                <div class="mb-2"><span class="font-semibold">Date:</span> ${a.appointment_date}</div>
+                                <div class="mb-2"><span class="font-semibold">Time:</span> ${a.appointment_time}</div>
+                                <div class="mb-2"><span class="font-semibold">Duration:</span> ${a.duration} minutes</div>
+                                <div class="mb-2"><span class="font-semibold">Status:</span> ${a.status.toUpperCase()}</div>
+                                <div class="mb-2"><span class="font-semibold">Notes:</span> ${a.notes || '<span class="text-gray-400">No notes</span>'}</div>
+                            `;
+                        } else {
+                            content.innerHTML = '<div class="text-red-500">Failed to load appointment details.</div>';
+                        }
+                    });
+            } else if (action === 'edit') {
+                // Load and show edit modal
+                Promise.all([
+                    fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/patients.php').then(r => r.json()),
+                    fetch('http://localhost/Fil_Rouge_Projet/dashboard/api/services.php').then(r => r.json())
+                ]).then(([patients, services]) => {
+                    document.getElementById('patient-select').innerHTML = patients.map(p => 
+                        `<option value="${p.id}">${p.first_name} ${p.last_name}</option>`
+                    ).join('');
+                    document.getElementById('service-select').innerHTML = services.map(s => 
+                        `<option value="${s.id}">${s.name}</option>`
+                    ).join('');
+                    return fetch(`http://localhost/Fil_Rouge_Projet/dashboard/api/appointments.php?id=${appointmentId}`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.appointment) {
+                        var a = data.appointment;
+                        document.getElementById('appointment-id').value = a.id;
+                        document.getElementById('patient-select').value = a.patient_id;
+                        document.getElementById('service-select').value = a.service_id;
+                        document.getElementById('appointment-date').value = a.appointment_date;
+                        document.getElementById('appointment-time').value = a.appointment_time;
+                        document.getElementById('duration').value = a.duration;
+                        document.getElementById('status').value = a.status;
+                        document.getElementById('notes').value = a.notes || '';
+                        openModal('appointmentModal');
+                    }
+                });
+            }
+        });
+    });
+});
+</script>

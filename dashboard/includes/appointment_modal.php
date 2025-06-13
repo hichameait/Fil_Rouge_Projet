@@ -7,20 +7,22 @@
             </button>
         </div>
         <form id="appointmentForm" class="p-6">
+            <!-- Add hidden dentist_id input -->
+            <input type="hidden" name="dentist_id" value="<?= $_SESSION['user_id'] ?>">
             <div class="space-y-4">
                 <div>
-                    <label for="patient" class="block text-sm font-medium text-gray-700 mb-1">Patient</label>
-                    <select id="patient" name="patient_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <label for="patient-select" class="block text-sm font-medium text-gray-700 mb-1">Patient</label>
+                    <select id="patient-select" name="patient_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                         <option value="">Select a patient</option>
-                        <!-- PHP will populate this dynamically -->
+                        <!-- JS will populate this dynamically -->
                     </select>
                 </div>
                 
                 <div>
-                    <label for="procedure" class="block text-sm font-medium text-gray-700 mb-1">Procedure</label>
-                    <select id="procedure" name="procedure_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        <option value="">Select a procedure</option>
-                        <!-- PHP will populate this dynamically -->
+                    <label for="service-select" class="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                    <select id="service-select" name="base_service_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <option value="">Select a service</option>
+                        <!-- JS will populate this dynamically -->
                     </select>
                 </div>
                 
@@ -51,3 +53,34 @@
         </form>
     </div>
 </div>
+<script>
+// Fetch and populate patients
+fetch('/Fil_Rouge_Projet/dashboard/api/patients.php')
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById('patient-select');
+        if (Array.isArray(data)) {
+            data.forEach(patient => {
+                const opt = document.createElement('option');
+                opt.value = patient.id;
+                opt.textContent = patient.first_name + ' ' + patient.last_name;
+                select.appendChild(opt);
+            });
+        }
+    });
+
+// Fetch and populate services
+fetch('/Fil_Rouge_Projet/dashboard/api/services.php')
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById('service-select');
+        if (Array.isArray(data)) {
+            data.forEach(service => {
+                const opt = document.createElement('option');
+                opt.value = service.id; // base_service_id
+                opt.textContent = service.name;
+                select.appendChild(opt);
+            });
+        }
+    });
+</script>

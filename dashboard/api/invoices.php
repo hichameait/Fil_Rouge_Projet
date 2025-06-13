@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
 require_once '../config/database.php';
 require_once '../includes/auth.php';
 
@@ -11,7 +12,7 @@ if (!isLoggedIn()) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($method) {
     case 'GET':
@@ -37,8 +38,7 @@ switch ($method) {
 }
 
 function handleGetInvoices() {
-    global $pdo, $clinic_id;
-    
+    global $pdo, $user_id;
     try {
         if (isset($_GET['id'])) {
             $stmt = $pdo->prepare("
@@ -46,22 +46,22 @@ function handleGetInvoices() {
                        CONCAT(p.first_name, ' ', p.last_name) as patient_name
                 FROM invoices i
                 JOIN patients p ON i.patient_id = p.id
-                WHERE i.id = ? AND i.clinic_id = ?
+                WHERE i.id = ? AND i.user_id = ?
             ");
-            $stmt->execute([$_GET['id'], $clinic_id]);
+            $stmt->execute([$_GET['id'], $user_id]);
             $invoice = $stmt->fetch();
-            
+
             if ($invoice) {
-                // Get invoice items
+                // Get invoice items (update to use base_services)
                 $stmt = $pdo->prepare("
-                    SELECT ii.*, s.name as service_name
+                    SELECT ii.*, bs.name as service_name
                     FROM invoice_items ii
-                    LEFT JOIN services s ON ii.service_id = s.id
+                    LEFT JOIN base_services bs ON ii.service_id = bs.id
                     WHERE ii.invoice_id = ?
                 ");
                 $stmt->execute([$invoice['id']]);
                 $invoice['items'] = $stmt->fetchAll();
-                
+
                 echo json_encode($invoice);
             } else {
                 http_response_code(404);
@@ -72,10 +72,10 @@ function handleGetInvoices() {
                 SELECT i.*, p.first_name, p.last_name
                 FROM invoices i
                 JOIN patients p ON i.patient_id = p.id
-                WHERE i.clinic_id = ?
+                WHERE i.user_id = ?
                 ORDER BY i.created_at DESC
             ");
-            $stmt->execute([$clinic_id]);
+            $stmt->execute([$user_id]);
             $invoices = $stmt->fetchAll();
             echo json_encode($invoices);
         }
@@ -86,7 +86,7 @@ function handleGetInvoices() {
 }
 
 function handleCreateInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $required_fields = ['patient_id', 'invoice_number'];
@@ -128,13 +128,13 @@ function handleCreateInvoice() {
         // Insert invoice
         $stmt = $pdo->prepare("
             INSERT INTO invoices (
-                clinic_id, patient_id, invoice_number, subtotal, tax_amount, 
+                user_id, patient_id, invoice_number, subtotal, tax_amount, 
                 discount_amount, total_amount, status, due_date, payment_method, notes, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $stmt->execute([
-            $clinic_id,
+            $user_id,
             $_POST['patient_id'],
             $_POST['invoice_number'],
             $subtotal,
@@ -166,11 +166,8 @@ function handleCreateInvoice() {
         }
         
         // Log activity
-        $stmt = $pdo->prepare("
-            INSERT INTO activities (clinic_id, type, title, description, created_at)
-            VALUES (?, 'payment_received', 'New invoice created', ?, NOW())
-        ");
-        $stmt->execute([$clinic_id, 'Invoice ' . $_POST['invoice_number'] . ' created']);
+        $stmt = $pdo->prepare("INSERT INTO activities (user_id, type, title, description, created_at) VALUES (?, 'payment_received', 'New invoice created', ?, NOW())");
+        $stmt->execute([$user_id, 'Invoice ' . $_POST['invoice_number'] . ' created']);
         
         echo json_encode([
             'success' => true,
@@ -185,7 +182,7 @@ function handleCreateInvoice() {
 }
 
 function handleUpdateInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -197,8 +194,8 @@ function handleUpdateInvoice() {
         }
         
         // Verify invoice belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
@@ -247,11 +244,8 @@ function handleUpdateInvoice() {
         
         // Add activity log for payment
         if (isset($input['status']) && $input['status'] === 'paid') {
-            $stmt = $pdo->prepare("
-                INSERT INTO activities (clinic_id, type, title, description, created_at)
-                VALUES (?, 'payment_received', 'Payment received', ?, NOW())
-            ");
-            $stmt->execute([$clinic_id, 'Payment received for invoice #' . $input['id']]);
+            $stmt = $pdo->prepare("INSERT INTO activities (user_id, type, title, description, created_at) VALUES (?, 'payment_received', 'Payment received', ?, NOW())");
+            $stmt->execute([$user_id, 'Payment received for invoice #' . $input['id']]);
         }
         
         echo json_encode([
@@ -267,7 +261,7 @@ function handleUpdateInvoice() {
 }
 
 function handleDeleteInvoice() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -279,8 +273,8 @@ function handleDeleteInvoice() {
         }
         
         // Verify invoice belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
@@ -304,48 +298,55 @@ function handleDeleteInvoice() {
 }
 
 function handleDownloadInvoice() {
-    global $pdo, $clinic_id;
-    
+    global $pdo, $user_id;
+
     if (!isset($_GET['id'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Invoice ID is required']);
         return;
     }
-    
+
     try {
         // Get invoice data
         $stmt = $pdo->prepare("
             SELECT i.*, p.first_name, p.last_name, p.email, p.phone, p.address,
-                   c.name as clinic_name, c.address as clinic_address, c.phone as clinic_phone
+                   s.clinic_name, s.clinic_address, s.clinic_phone
             FROM invoices i
             JOIN patients p ON i.patient_id = p.id
-            JOIN clinics c ON i.clinic_id = c.id
-            WHERE i.id = ? AND i.clinic_id = ?
+            LEFT JOIN settings s ON i.user_id = s.user_id
+            WHERE i.id = ? AND i.user_id = ?
         ");
-        $stmt->execute([$_GET['id'], $clinic_id]);
+        $stmt->execute([$_GET['id'], $user_id]);
         $invoice = $stmt->fetch();
-        
+
         if (!$invoice) {
             http_response_code(404);
             echo json_encode(['error' => 'Invoice not found']);
             return;
         }
-        
-        // Get invoice items
+
+        // Get invoice items (update to use base_services)
         $stmt = $pdo->prepare("
-            SELECT ii.*, s.name as service_name
+            SELECT ii.*, bs.name as service_name
             FROM invoice_items ii
-            LEFT JOIN services s ON ii.service_id = s.id
+            LEFT JOIN base_services bs ON ii.service_id = bs.id
             WHERE ii.invoice_id = ?
         ");
         $stmt->execute([$invoice['id']]);
         $items = $stmt->fetchAll();
-        
-        // Generate PDF
-        require_once '../../vendor/autoload.php';
-        $mpdf = new \Mpdf\Mpdf();
-        
-        // Add PDF content
+
+        // Generate PDF using TCPDF
+        require_once __DIR__ . '/vendor/autoload.php';
+        if (!class_exists('TCPDF')) {
+            http_response_code(500);
+            echo json_encode(['error' => 'TCPDF library not found. Please run "composer require tecnickcom/tcpdf" and ensure vendor/autoload.php is included in the api folder.']);
+            return;
+        }
+
+        $pdf = new TCPDF();
+        $pdf->AddPage();
+
+        // Build HTML content for the invoice
         $html = '
         <style>
             .invoice-header { padding: 20px 0; }
@@ -359,7 +360,6 @@ function handleDownloadInvoice() {
             <p>Invoice #: '.$invoice['invoice_number'].'</p>
             <p>Date: '.date('M j, Y', strtotime($invoice['created_at'])).'</p>
         </div>
-        
         <div class="invoice-details">
             <div style="float: left; width: 50%;">
                 <h3>From:</h3>
@@ -374,9 +374,7 @@ function handleDownloadInvoice() {
                 <p>Phone: '.$invoice['phone'].'</p>
             </div>
             <div style="clear: both;"></div>
-        </div>';
-        
-        $html .= '
+        </div>
         <table class="items-table">
             <thead>
                 <tr>
@@ -387,7 +385,6 @@ function handleDownloadInvoice() {
                 </tr>
             </thead>
             <tbody>';
-        
         foreach ($items as $item) {
             $html .= '
             <tr>
@@ -397,22 +394,20 @@ function handleDownloadInvoice() {
                 <td>$'.number_format($item['total_price'], 2).'</td>
             </tr>';
         }
-        
-        $html .= '</tbody></table>';
-        
-        $html .= '
+        $html .= '</tbody></table>
         <div class="total-section">
             <p>Subtotal: $'.number_format($invoice['subtotal'], 2).'</p>
             <p>Tax: $'.number_format($invoice['tax_amount'], 2).'</p>
             <p>Discount: $'.number_format($invoice['discount_amount'], 2).'</p>
             <p><strong>Total: $'.number_format($invoice['total_amount'], 2).'</strong></p>
         </div>';
-        
-        $mpdf->WriteHTML($html);
-        
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+
         // Output PDF
-        $mpdf->Output('Invoice-'.$invoice['invoice_number'].'.pdf', 'D');
-        
+        $pdf->Output('Invoice-'.$invoice['invoice_number'].'.pdf', 'D');
+        exit;
+
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);

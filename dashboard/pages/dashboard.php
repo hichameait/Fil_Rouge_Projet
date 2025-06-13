@@ -1,54 +1,65 @@
 <?php
 // Get dashboard statistics
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 // Total patients
 $total_patients = fetchOne(
-    "SELECT COUNT(*) as count FROM patients WHERE clinic_id = ?",
-    [$clinic_id]
+    "SELECT COUNT(*) as count FROM patients WHERE user_id = ?",
+    [$user_id]
 )['count'];
 
 // Today's appointments
 $today_appointments = fetchOne(
-    "SELECT COUNT(*) as count FROM appointments WHERE clinic_id = ? AND DATE(appointment_date) = CURDATE()",
-    [$clinic_id]
+    "SELECT COUNT(*) as count FROM appointments WHERE user_id = ? AND DATE(appointment_date) = CURDATE()",
+    [$user_id]
 )['count'];
 
 // Remaining appointments today
 $remaining_appointments = fetchOne(
-    "SELECT COUNT(*) as count FROM appointments WHERE clinic_id = ? AND DATE(appointment_date) = CURDATE() AND appointment_time > CURTIME() AND status = 'scheduled'",
-    [$clinic_id]
+    "SELECT COUNT(*) as count FROM appointments WHERE user_id = ? AND DATE(appointment_date) = CURDATE() AND appointment_time > CURTIME() AND status = 'scheduled'",
+    [$user_id]
 )['count'];
 
 // Average wait time (last 7 days)
-$avg_wait_time = fetchOne(
-    "SELECT AVG(wait_time) as avg_time FROM appointment_logs WHERE clinic_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
-    [$clinic_id]
-)['avg_time'] ?? 0;
+$avg_wait_time_row = fetchOne(
+    "SELECT AVG(wait_time) as avg_time FROM appointment_logs WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
+    [$user_id]
+);
+$avg_wait_time = isset($avg_wait_time_row['avg_time']) && $avg_wait_time_row['avg_time'] !== null
+    ? $avg_wait_time_row['avg_time']
+    : 0;
 
 // Monthly revenue
 $monthly_revenue = fetchOne(
-    "SELECT SUM(total_amount) as revenue FROM invoices WHERE clinic_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid'",
-    [$clinic_id]
+    "SELECT SUM(total_amount) as revenue FROM invoices WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid'",
+    [$user_id]
 )['revenue'] ?? 0;
 
 // Upcoming appointments
 $upcoming_appointments = fetchAll(
-    "SELECT a.*, p.first_name, p.last_name, s.name as service_name, u.first_name as dentist_name
+    "SELECT a.*, 
+            p.first_name, p.last_name, 
+            bs.name as service_name, 
+            dsp.price as service_price, 
+            u.first_name as dentist_name
      FROM appointments a
      JOIN patients p ON a.patient_id = p.id
-     JOIN services s ON a.service_id = s.id
+     JOIN base_services bs ON a.base_service_id = bs.id
+     LEFT JOIN dentist_service_prices dsp ON dsp.base_service_id = bs.id AND dsp.user_id = a.user_id
      JOIN users u ON a.dentist_id = u.id
-     WHERE a.clinic_id = ? AND DATE(a.appointment_date) = CURDATE() AND a.appointment_time > CURTIME() AND a.status = 'scheduled'
+     WHERE a.user_id = ? 
+       AND DATE(a.appointment_date) = CURDATE() 
+       AND a.appointment_time > CURTIME() 
+       AND a.status = 'scheduled'
      ORDER BY a.appointment_time
      LIMIT 5",
-    [$clinic_id]
+    [$user_id]
 );
 
 // Recent activities
 $recent_activities = fetchAll(
-    "SELECT * FROM activities WHERE clinic_id = ? ORDER BY created_at DESC LIMIT 5",
-    [$clinic_id]
+    "SELECT * FROM activities WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+    [$user_id]
 );
 ?>
 

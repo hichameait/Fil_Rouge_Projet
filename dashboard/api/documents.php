@@ -21,7 +21,7 @@ if (!isLoggedIn()) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($method) {
     case 'GET':
@@ -43,7 +43,7 @@ switch ($method) {
 }
 
 function handleGetDocuments() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         if (isset($_GET['action']) && $_GET['action'] === 'download' && isset($_GET['id'])) {
@@ -59,9 +59,9 @@ function handleGetDocuments() {
                 FROM documents d
                 LEFT JOIN patients p ON d.patient_id = p.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
-                WHERE d.id = ? AND d.clinic_id = ?
+                WHERE d.id = ? AND d.user_id = ?
             ");
-            $stmt->execute([$_GET['id'], $clinic_id]);
+            $stmt->execute([$_GET['id'], $user_id]);
             $document = $stmt->fetch();
             
             if ($document) {
@@ -76,10 +76,10 @@ function handleGetDocuments() {
                 FROM documents d
                 LEFT JOIN patients p ON d.patient_id = p.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
-                WHERE d.clinic_id = ?
+                WHERE d.user_id = ?
                 ORDER BY d.created_at DESC
             ");
-            $stmt->execute([$clinic_id]);
+            $stmt->execute([$user_id]);
             $documents = $stmt->fetchAll();
             echo json_encode($documents);
         }
@@ -90,7 +90,7 @@ function handleGetDocuments() {
 }
 
 function handleUploadDocument() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         // Validate document type
@@ -142,13 +142,13 @@ function handleUploadDocument() {
         // Insert document
         $stmt = $pdo->prepare("
             INSERT INTO documents (
-                clinic_id, patient_id, appointment_id, type, title, description,
+                user_id, patient_id, appointment_id, type, title, description,
                 file_path, file_size, mime_type, uploaded_by, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $stmt->execute([
-            $clinic_id,
+            $user_id,
             $patient_id,
             $appointment_id,
             $_POST['type'],
@@ -163,7 +163,7 @@ function handleUploadDocument() {
         $document_id = $pdo->lastInsertId();
         
         // Log activity
-        logActivity($pdo, $clinic_id, 'document_uploaded', 'Document uploaded', $_POST['title'] . ' was uploaded');
+        logActivity($pdo, $user_id, 'document_uploaded', 'Document uploaded', $_POST['title'] . ' was uploaded');
         
         echo json_encode([
             'success' => true,
@@ -178,7 +178,7 @@ function handleUploadDocument() {
 }
 
 function handleUpdateDocument() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -190,8 +190,8 @@ function handleUpdateDocument() {
         }
         
         // Verify document belongs to clinic
-        $stmt = $pdo->prepare("SELECT id FROM documents WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT id FROM documents WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(['error' => 'Document not found']);
@@ -230,7 +230,7 @@ function handleUpdateDocument() {
 }
 
 function handleDeleteDocument() {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -242,8 +242,8 @@ function handleDeleteDocument() {
         }
         
         // Get document info
-        $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ? AND clinic_id = ?");
-        $stmt->execute([$input['id'], $clinic_id]);
+        $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ? AND user_id = ?");
+        $stmt->execute([$input['id'], $user_id]);
         $document = $stmt->fetch();
         
         if (!$document) {
@@ -262,7 +262,7 @@ function handleDeleteDocument() {
         $stmt->execute([$input['id']]);
         
         // Log activity
-        logActivity($pdo, $clinic_id, 'document_deleted', 'Document deleted', 'Document ID ' . $input['id'] . ' was deleted');
+        logActivity($pdo, $user_id, 'document_deleted', 'Document deleted', 'Document ID ' . $input['id'] . ' was deleted');
         
         echo json_encode(['success' => true, 'message' => 'Document deleted successfully']);
         
@@ -273,15 +273,15 @@ function handleDeleteDocument() {
 }
 
 function downloadDocument($document_id) {
-    global $pdo, $clinic_id;
+    global $pdo, $user_id;
     
     try {
         $stmt = $pdo->prepare("
             SELECT file_path, title, mime_type 
             FROM documents 
-            WHERE id = ? AND clinic_id = ?
+            WHERE id = ? AND user_id = ?
         ");
-        $stmt->execute([$document_id, $clinic_id]);
+        $stmt->execute([$document_id, $user_id]);
         $document = $stmt->fetch();
         
         if (!$document || !$document['file_path']) {

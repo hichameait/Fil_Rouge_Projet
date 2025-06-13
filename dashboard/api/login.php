@@ -19,9 +19,9 @@ try {
     }
     
     $stmt = $pdo->prepare("
-        SELECT u.*, c.id as clinic_id, c.name as clinic_name 
+        SELECT u.*, c.id as user_id, c.name as clinic_name 
         FROM users u
-        JOIN clinics c ON u.clinic_id = c.id
+        JOIN clinics c ON u.user_id = c.id
         WHERE u.email = ? AND u.status = 'active'
     ");
     $stmt->execute([$input['email']]);
@@ -35,7 +35,7 @@ try {
         
         // Set session data
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['clinic_id'] = $user['clinic_id'];
+        $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
         $_SESSION['role'] = $user['role'];
         $_SESSION['clinic_name'] = $user['clinic_name'];

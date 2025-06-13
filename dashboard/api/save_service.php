@@ -10,7 +10,7 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 $data = $_POST;
 
 $name = trim($data['name'] ?? '');
@@ -29,13 +29,26 @@ if ($name === '' || !$category_id) {
 
 try {
     if ($id) {
-        // Update existing service
-        $stmt = $pdo->prepare("UPDATE services SET name=?, description=?, category_id=?, duration=?, price=?, requires_tooth_selection=? WHERE id=? AND clinic_id=?");
-        $stmt->execute([$name, $description, $category_id, $duration, $price, $requires_tooth_selection, $id, $clinic_id]);
+        // Update existing base_service (custom or global)
+        $stmt = $pdo->prepare("UPDATE base_services SET name=?, description=?, category_id=?, duration=?, requires_tooth_selection=? WHERE id=?");
+        $stmt->execute([$name, $description, $category_id, $duration, $requires_tooth_selection, $id]);
+        // Update price for this dentist
+        $exists = fetchOne("SELECT id FROM dentist_service_prices WHERE user_id = ? AND base_service_id = ?", [$user_id, $id]);
+        if ($exists) {
+            $stmt = $pdo->prepare("UPDATE dentist_service_prices SET price=? WHERE id=?");
+            $stmt->execute([$price, $exists['id']]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO dentist_service_prices (user_id, base_service_id, price, is_active, created_at, updated_at) VALUES (?, ?, ?, 1, NOW(), NOW())");
+            $stmt->execute([$user_id, $id, $price]);
+        }
     } else {
-        // Insert new service
-        $stmt = $pdo->prepare("INSERT INTO services (clinic_id, name, description, category_id, duration, price, requires_tooth_selection, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
-        $stmt->execute([$clinic_id, $name, $description, $category_id, $duration, $price, $requires_tooth_selection]);
+        // Insert new custom base_service (created_by = dentist)
+        $stmt = $pdo->prepare("INSERT INTO base_services (category_id, name, description, duration, requires_tooth_selection, is_active, created_at, updated_at, created_by) VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW(), ?)");
+        $stmt->execute([$category_id, $name, $description, $duration, $requires_tooth_selection, $user_id]);
+        $base_service_id = $pdo->lastInsertId();
+        // Insert price for this dentist
+        $stmt = $pdo->prepare("INSERT INTO dentist_service_prices (user_id, base_service_id, price, is_active, created_at, updated_at) VALUES (?, ?, ?, 1, NOW(), NOW())");
+        $stmt->execute([$user_id, $base_service_id, $price]);
     }
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

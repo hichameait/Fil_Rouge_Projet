@@ -1,5 +1,5 @@
 <?php
-$clinic_id = $_SESSION['clinic_id'];
+$user_id = $_SESSION['user_id'];
 
 // Handle filters
 $type_filter = $_GET['type'] ?? '';
@@ -7,8 +7,8 @@ $patient_filter = $_GET['patient'] ?? '';
 $search = $_GET['search'] ?? '';
 
 // Build query
-$where_conditions = ["d.clinic_id = ?"];
-$params = [$clinic_id];
+$where_conditions = ["d.user_id = ?"];
+$params = [$user_id];
 
 if (!empty($type_filter)) {
     $where_conditions[] = "d.type = ?";
@@ -41,8 +41,8 @@ $documents = fetchAll(
 
 // Get patients for filter
 $patients = fetchAll(
-    "SELECT id, first_name, last_name FROM patients WHERE clinic_id = ? ORDER BY first_name, last_name",
-    [$clinic_id]
+    "SELECT id, first_name, last_name FROM patients WHERE user_id = ? ORDER BY first_name, last_name",
+    [$user_id]
 );
 
 // Get document statistics
@@ -53,8 +53,8 @@ $stats = fetchOne(
         COUNT(CASE WHEN type = 'treatment_plan' THEN 1 END) as treatment_plans,
         COUNT(CASE WHEN type = 'consent_form' THEN 1 END) as consent_forms
      FROM documents 
-     WHERE clinic_id = ?",
-    [$clinic_id]
+     WHERE user_id = ?",
+    [$user_id]
 );
 ?>
 

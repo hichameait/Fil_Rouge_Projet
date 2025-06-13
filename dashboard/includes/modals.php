@@ -385,3 +385,20 @@
         </div>
     </div>
 </div>
+
+<script>
+// Fetch and populate dentists for the appointment modal
+fetch('/Fil_Rouge_Projet/dashboard/api/dentists.php')
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById('dentist-select');
+        if (select && Array.isArray(data)) {
+            data.forEach(dentist => {
+                const opt = document.createElement('option');
+                opt.value = dentist.id;
+                opt.textContent = dentist.first_name + ' ' + dentist.last_name;
+                select.appendChild(opt);
+            });
+        }
+    });
+</script>
