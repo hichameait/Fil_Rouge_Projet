@@ -21,18 +21,30 @@ $monthly_revenue = fetchAll(
     [$user_id]
 );
 
-// Get top services (using new normalized schema)
+// Get top services with proper price calculation
 $top_services = fetchAll(
-    "SELECT bs.name, COUNT(a.id) as appointment_count, SUM(dsp.price) as total_revenue
+    "SELECT 
+        bs.id,
+        bs.name, 
+        COUNT(a.id) as appointment_count,
+        dsp.price as service_price,
+        (COUNT(a.id) * dsp.price) as total_revenue
      FROM appointments a
-     JOIN base_services bs ON a.base_service_id = bs.id
-     LEFT JOIN dentist_service_prices dsp ON dsp.base_service_id = bs.id AND dsp.user_id = a.user_id
-     WHERE a.user_id = ? AND YEAR(a.appointment_date) = YEAR(CURDATE())
-     GROUP BY bs.id
-     ORDER BY appointment_count DESC
+     INNER JOIN base_services bs ON bs.id = a.base_service_id
+     INNER JOIN dentist_service_prices dsp ON dsp.base_service_id = bs.id 
+     WHERE a.user_id = ? 
+        AND dsp.user_id = ?
+        AND YEAR(a.appointment_date) = YEAR(CURDATE())
+        AND bs.is_active = 1
+        AND dsp.is_active = 1
+     GROUP BY bs.id, bs.name, dsp.price
+     ORDER BY COUNT(a.id) DESC
      LIMIT 10",
-    [$user_id]
+    [$user_id, $user_id]
 );
+
+// Debug query results
+error_log("Top Services Query Results: " . print_r($top_services, true));
 
 // Get appointment status distribution
 $appointment_stats = fetchAll(
@@ -125,11 +137,18 @@ $appointment_stats = fetchAll(
                     <?php foreach ($top_services as $service): ?>
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="font-medium text-gray-900"><?= $service['name'] ?></p>
-                                <p class="text-sm text-gray-600"><?= $service['appointment_count'] ?> appointments</p>
+                                <p class="font-medium text-gray-900"><?= htmlspecialchars($service['name']) ?></p>
+                                <p class="text-sm text-gray-600">
+                                    <?= $service['appointment_count'] ?> appointment<?= $service['appointment_count'] !== 1 ? 's' : '' ?>
+                                    <span class="text-gray-500">
+                                        (<?= number_format((float)$service['service_price'], 2) ?> MAD per service)
+                                    </span>
+                                </p>
                             </div>
                             <div class="text-right">
-                                <p class="font-medium text-gray-900">$<?= number_format($service['total_revenue'], 2) ?></p>
+                                <p class="font-medium text-gray-900">
+                                    <?= number_format((float)$service['total_revenue'], 2) ?> MAD
+                                </p>
                             </div>
                         </div>
                     <?php endforeach; ?>

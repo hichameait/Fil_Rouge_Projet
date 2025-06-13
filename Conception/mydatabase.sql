@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* Nom de SGBD :  SAP SQL Anywhere 17                           */
-/* Date de création :  5/30/2025 9:57:16 AM                     */
+/* Date de crÃ©ation :  5/30/2025 9:57:16 AM                     */
 /*==============================================================*/
 
 
@@ -340,3 +340,7 @@ alter table PROPOSE_SERVICES
       on update restrict
       on delete restrict;
 
+ALTER TABLE users ADD COLUMN clinic_id INT DEFAULT NULL;
+-- Optionally, add a foreign key if you have a clinics/settings table:
+-- ALTER TABLE users ADD CONSTRAINT fk_clinic FOREIGN KEY (clinic_id) REFERENCES settings(id);
+ALTER TABLE settings MODIFY id INT NOT NULL AUTO_INCREMENT;
