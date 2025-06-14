@@ -8,6 +8,11 @@ require_once '../dashboard/includes/auth.php';
 $userEmail = '';
 $userName = '';
 
+if (!isset($_SESSION['user_id']) && !isset($_SESSION['email'])) {
+    header('Location: ./login.php');
+    exit;
+}
+
 if (isset($_SESSION['user_id'])) {
     $userId = $_SESSION['user_id'];
     $stmt = $pdo->prepare("SELECT email, first_name, last_name FROM users WHERE id = ?");
@@ -19,7 +24,6 @@ if (isset($_SESSION['user_id'])) {
     }
 } elseif (isset($_SESSION['email'])) {
     $userEmail = $_SESSION['email'];
-    $userName = $_SESSION['name'] ?? '';
 }
 
 // Get plan_id from GET or POST

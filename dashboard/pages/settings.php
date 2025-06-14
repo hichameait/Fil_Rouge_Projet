@@ -257,6 +257,47 @@ function updateSettings() {
     }
 }
 
+function updateUser() {
+    global $pdo, $success_message, $error_message;
+    try {
+        $userId = $_POST['user_id'] ?? '';
+        $firstName = $_POST['first_name'] ?? '';
+        $lastName = $_POST['last_name'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $role = $_POST['role'] ?? '';
+        $status = $_POST['status'] ?? 'active';
+
+        $stmt = $pdo->prepare("
+            UPDATE users 
+            SET first_name = ?, last_name = ?, email = ?, role = ?, status = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([$firstName, $lastName, $email, $role, $status, $userId]);
+        
+        $success_message = "User updated successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error updating user: " . $e->getMessage();
+    }
+}
+
+function deleteUser() {
+    global $pdo, $success_message, $error_message;
+    try {
+        $userId = $_POST['user_id'] ?? '';
+        
+        if (!$userId) {
+            throw new Exception("User ID is required");
+        }
+
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        
+        $success_message = "User deleted successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error deleting user: " . $e->getMessage();
+    }
+}
+
 function updateDentistProfile() {
     global $pdo, $user_id, $success_message, $error_message;
     try {
