@@ -234,6 +234,7 @@ const PLAN_NAME = <?php echo json_encode($plan_name); ?>;
 const PLAN_PRICE = <?php echo json_encode($plan_price); ?>;
 const USER_EMAIL = <?php echo json_encode($userEmail); ?>;
 const USER_NAME = <?php echo json_encode($userName); ?>;
+const PLAN_ID = <?php echo json_encode($plan_id); ?>;
 
 // Create payment intent first, then initialize elements
 async function createPaymentIntent() {
@@ -248,7 +249,8 @@ async function createPaymentIntent() {
                 email: USER_EMAIL
             },
             plan_name: PLAN_NAME,
-            plan_price: PLAN_PRICE
+            plan_price: PLAN_PRICE,
+            plan_id:PLAN_ID
         })
     });
     

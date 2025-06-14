@@ -32,7 +32,6 @@ switch ($method) {
         handleDelete($pdo);
         break;
     default:
-        // Method not allowed
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
         break;

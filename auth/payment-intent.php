@@ -4,14 +4,14 @@ session_start();
 require_once '../dashboard/api/vendor/autoload.php'; 
 require_once '../dashboard/config/database.php';
 
-
 \Stripe\Stripe::setApiKey('sk_test_51RYmSVRuYmOMaUOhPOG69YgXqQOG9uefxPizc3nC8GVL2FToqNbV94AWR65Jl9WoXAopWqxrdsgn9pyBijAgumZf00Kl4F3TkE');
 header('Content-Type: application/json');
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $billingDetails = $input['billing_details'] ?? [];
-    $planName = $input['plan_name'] ?? 'Starter Plan';
+    $planName = $input['plan_name'] ?? 'Plan Essentiel';
+    $planid = isset($input['plan_id']) ? intval($input['plan_id']) : 1;
     $planPrice = isset($input['plan_price']) ? floatval($input['plan_price']) : 149;
 
     $amount = intval($planPrice * 100);
@@ -27,6 +27,33 @@ try {
             'billing_address' => json_encode($billingDetails['address'] ?? [])
         ]
     ]);
+
+    // Save subscription only after payment confirmation (not at intent creation)
+    if (
+        isset($input['payment_intent_id'], $input['payment_status']) &&
+        $input['payment_status'] === 'succeeded' &&
+        isset($_SESSION['user_id'])
+    ) {
+
+            $user_id = $_SESSION['user_id'];
+            $plan_id = $planid;
+            $start_date = date('Y-m-d');
+            $end_date = date('Y-m-d', strtotime("+{$plan['duration_months']} months"));
+            $status = 'active';
+            $payment_method = 'stripe';
+            $transaction_id = $input['payment_intent_id'];
+
+            // Prevent duplicate subscriptions for the same transaction
+            $check = $pdo->prepare("SELECT COUNT(*) FROM subscriptions WHERE transaction_id = ?");
+            $check->execute([$transaction_id]);
+            if ($check->fetchColumn() == 0) {
+                $insert = $pdo->prepare("INSERT INTO subscriptions (user_id, plan_id, start_date, end_date, status, payment_method, transaction_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+                $insert->execute([$user_id, $plan_id, $start_date, $end_date, $status, $payment_method, $transaction_id]);
+            }
+        
+        echo json_encode(['success' => true]);
+        exit;
+    }
 
     echo json_encode(['clientSecret' => $intent->client_secret]);
 } catch (Exception $e) {
