@@ -82,7 +82,7 @@ $recent_payments = $pdo->query("
                         <div class="ml-4">
                             <h3 class="text-gray-500 text-sm">Revenue Total</h3>
                             <p class="text-2xl font-semibold">
-                                <?= number_format($stats['total_revenue'], 2, ',', ' ') ?> €
+                                <?= number_format($stats['total_revenue'], 0, '', ' ') ?> MAD
                             </p>
                         </div>
                     </div>
@@ -114,7 +114,7 @@ $recent_payments = $pdo->query("
                                     <?= htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']) ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?= number_format($payment['total_amount'], 2) ?> €
+                                    <?= number_format($payment['total_amount'], 0, '', ' ') ?> MAD
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <?= date('d/m/Y', strtotime($payment['paid_date'])) ?>

@@ -75,6 +75,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
 }
 
+// Handle logo upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['clinic_logo_file']) && $_FILES['clinic_logo_file']['error'] === UPLOAD_ERR_OK) {
+    $uploadDir = __DIR__ . '/../../uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    $ext = pathinfo($_FILES['clinic_logo_file']['name'], PATHINFO_EXTENSION);
+    $filename = 'clinic_logo_' . $user_id . '_' . time() . '.' . $ext;
+    $targetPath = $uploadDir . $filename;
+    if (move_uploaded_file($_FILES['clinic_logo_file']['tmp_name'], $targetPath)) {
+        $logoUrl = '/uploads/' . $filename;
+        $stmt = $pdo->prepare("UPDATE settings SET clinic_logo_url = ? WHERE user_id = ?");
+        $stmt->execute([$logoUrl, $user_id]);
+        // Update $settings for immediate display
+        $settings['clinic_logo_url'] = $logoUrl;
+        $success_message = "Logo uploaded successfully!";
+    } else {
+        $error_message = "Failed to upload logo.";
+    }
+}
+
 function post_val($key, $default = '') {
     return isset($_POST[$key]) ? $_POST[$key] : $default;
 }
@@ -404,7 +425,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
         <!-- Clinic Information Tab -->
         <div id="clinic-tab" class="settings-tab-content p-6">
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-6" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update_clinic">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -431,6 +452,15 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                         <label for="clinic_logo_url" class="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
                         <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="mt-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ou téléchargez un logo</label>
+                            <input type="file" name="clinic_logo_file" accept="image/*" class="block w-full text-sm text-gray-500">
+                        </div>
+                        <?php if (!empty($settings['clinic_logo_url'])): ?>
+                            <div class="mt-2">
+                                <img src="<?= htmlspecialchars($settings['clinic_logo_url']) ?>" alt="Clinic Logo" class="h-16 rounded shadow border">
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div>
                         <label for="clinic_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>

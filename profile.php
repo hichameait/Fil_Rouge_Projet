@@ -68,6 +68,9 @@ if (!empty($dentist['languages_spoken'])) {
     $langs = json_decode($dentist['languages_spoken'], true);
     if (!is_array($langs)) $langs = [];
 }
+
+// Get logo url for profile image
+$profile_img = !empty($dentist['clinic_logo_url']) ? $dentist['clinic_logo_url'] : 'https://png.pngtree.com/png-vector/20240611/ourmid/pngtree-user-profile-icon-image-vector-png-image_12640450.png';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -122,18 +125,6 @@ if (!empty($dentist['languages_spoken'])) {
                             <i class="fas fa-envelope"></i>
                             <span><?= htmlspecialchars($dentist['clinic_email'] ?: $dentist['email']) ?></span>
                         </div>
-                        <?php if (!empty($langs)) : ?>
-                        <div>
-                            <i class="fas fa-globe"></i>
-                            <span>
-                                <?php
-                                // Filter out non-string values and implode safely
-                                $safeLangs = array_filter($langs, 'is_string');
-                                echo htmlspecialchars(implode(', ', $safeLangs));
-                                ?>
-                            </span>
-                        </div>
-                        <?php endif; ?>
                     </div>
                     <a href="#" class="cta-button">
                         <i class="far fa-calendar-alt"></i>
@@ -141,7 +132,7 @@ if (!empty($dentist['languages_spoken'])) {
                     </a>
                 </div>
                 <div class="profile-image animate-fade-in delay-200">
-                    <img src="https://via.placeholder.com/300" alt="<?= htmlspecialchars($dentist['first_name'] . ' ' . $dentist['last_name']) ?>">
+                    <img src="<?= htmlspecialchars($profile_img) ?>" alt="<?= htmlspecialchars($dentist['first_name'] . ' ' . $dentist['last_name']) ?>">
                 </div>
             </div>
         </div>
@@ -158,7 +149,6 @@ if (!empty($dentist['languages_spoken'])) {
                     <p><?= nl2br(htmlspecialchars($dentist['presentation'] ?: 'Présentation non renseignée.')) ?></p>
                 </div>
             </div>
-
         </section>
 
         <!-- Soins et actes -->
@@ -188,7 +178,7 @@ if (!empty($dentist['languages_spoken'])) {
                     <div class="price-list">
                         <?php
                         foreach ($prices as $item) {
-                            echo '<div class="price-item"><span class="price-name">' . htmlspecialchars($item['name']) . '</span><span class="price-value">' . htmlspecialchars($item['price']) . '€</span></div>';
+                            echo '<div class="price-item"><span class="price-name">' . htmlspecialchars($item['name']) . '</span><span class="price-value">' . htmlspecialchars($item['price']) . ' MAD</span></div>';
                         }
                         ?>
                     </div>

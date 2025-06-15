@@ -46,7 +46,7 @@ $plans = $pdo->query("SELECT * FROM subscription_plans ORDER BY price ASC")->fet
                                 </span>
                             </div>
                             <p class="mt-2 text-2xl font-bold text-gray-900">
-                                <?= number_format($plan['price'], 2) ?> €<span class="text-sm text-gray-500">/mois</span>
+                                <?= number_format($plan['price'], 0, '', ' ') ?> MAD<span class="text-sm text-gray-500">/mois</span>
                             </p>
                             <p class="mt-4 text-gray-500"><?= htmlspecialchars($plan['description']) ?></p>
                             <div class="mt-6 space-y-4">

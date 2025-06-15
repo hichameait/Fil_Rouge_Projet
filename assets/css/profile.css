@@ -31,7 +31,7 @@
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0rem 3rem;
         }
 
         /* Header Styles */
@@ -92,6 +92,7 @@
             padding: 4rem 0;
             position: relative;
             overflow: hidden;
+            padding: 2rem;
         }
 
         .hero::before {
@@ -595,7 +596,7 @@
         /* Responsive Styles */
         @media (min-width: 768px) {
             .container {
-                padding: 0 1.5rem;
+                padding: 0 3rem;
             }
 
             .nav-links {
@@ -608,7 +609,7 @@
             }
 
             .hero {
-                padding: 5rem 0;
+                padding: 5rem 3rem;
             }
 
             .hero-content {

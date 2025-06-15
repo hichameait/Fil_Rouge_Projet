@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h3><?php echo htmlspecialchars($plan_name); ?></h3>
                         <p>One-Time</p>
                     </div>
-                    <div class="price"><?php echo htmlspecialchars($plan_price); ?> MAD</div>
+                    <div class="price"><?php echo number_format($plan_price, 0, '', ' '); ?> MAD</div>
                 </div>
 
                 <div class="discount-section">
@@ -187,11 +187,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="total-section">
                     <div class="subtotal">
                         <span>Subtotal</span>
-                        <span><?php echo htmlspecialchars($plan_price); ?> MAD</span>
+                        <span><?php echo number_format($plan_price, 0, '', ' '); ?> MAD</span>
                     </div>
                     <div class="total">
                         <span>Total</span>
-                        <span><?php echo htmlspecialchars($plan_price); ?> MAD</span>
+                        <span><?php echo number_format($plan_price, 0, '', ' '); ?> MAD</span>
                     </div>
                 </div>
             </div>
@@ -261,10 +261,8 @@ async function createPaymentIntent() {
     return await response.json();
 }
 
-// Initialize Stripe Elements
 async function initializePayment() {
     try {
-        // Clear any existing payment elements
         if (paymentElement) {
             paymentElement.destroy();
         }
@@ -318,17 +316,32 @@ document.getElementById('checkout-form').addEventListener('submit', async (e) =>
         });
 
         // Confirm payment
-        const { error } = await stripe.confirmPayment({
+        const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
             confirmParams: {
                 return_url: window.location.origin + '/Fil_Rouge_Projet/auth/thank-you.php'
-            }
+            },
+            redirect: "if_required"
         });
 
         if (error) {
             document.getElementById('payment-error').textContent = error.message;
             submitButton.disabled = false;
             submitButton.textContent = 'Pay now';
+        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+            // Save subscription in DB after payment success
+            await fetch('payment-intent.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payment_intent_id: paymentIntent.id,
+                    payment_status: paymentIntent.status,
+                    plan_id: PLAN_ID,
+                    plan_name: PLAN_NAME,
+                    plan_price: PLAN_PRICE
+                })
+            });
+            window.location.href = '/Fil_Rouge_Projet/auth/thank-you.php?payment_intent=' + encodeURIComponent(paymentIntent.id);
         }
     } catch (error) {
         console.error('Error:', error);
