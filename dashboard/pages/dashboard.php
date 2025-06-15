@@ -20,20 +20,17 @@ $remaining_appointments = fetchOne(
     [$user_id]
 )['count'];
 
-// Average wait time (last 7 days)
-$avg_wait_time_row = fetchOne(
-    "SELECT AVG(wait_time) as avg_time FROM appointment_logs WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
-    [$user_id]
-);
-$avg_wait_time = isset($avg_wait_time_row['avg_time']) && $avg_wait_time_row['avg_time'] !== null
-    ? $avg_wait_time_row['avg_time']
-    : 0;
-
 // Monthly revenue
 $monthly_revenue = fetchOne(
     "SELECT SUM(total_amount) as revenue FROM invoices WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid'",
     [$user_id]
 )['revenue'] ?? 0;
+
+// Uploaded documents count
+$uploaded_documents = fetchOne(
+    "SELECT COUNT(*) as count FROM documents WHERE user_id = ?",
+    [$user_id]
+)['count'];
 
 // Upcoming appointments
 $upcoming_appointments = fetchAll(
@@ -93,13 +90,13 @@ $recent_activities = fetchAll(
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
-                    <h2 class="text-sm font-medium text-gray-600">Average Wait Time</h2>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <h2 class="text-sm font-medium text-gray-600">Uploaded Documents</h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10V6a5 5 0 0110 0v4M12 16v-4m0 0l-2 2m2-2l2 2" />
                     </svg>
                 </div>
-                <div class="text-2xl font-bold"><?= round($avg_wait_time) ?> min</div>
-                <p class="text-xs text-gray-500">2 min less than last week</p>
+                <div class="text-2xl font-bold"><?= number_format($uploaded_documents) ?></div>
+                <p class="text-xs text-gray-500">Total documents uploaded</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
