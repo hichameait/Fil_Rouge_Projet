@@ -204,43 +204,39 @@ $stats = fetchOne(
                                         <?= $invoice['due_date'] ? date('M j, Y', strtotime($invoice['due_date'])) : '-' ?>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex space-x-2">
-                                            <button class="view-invoice-btn text-blue-600 hover:text-blue-900" data-id="<?= $invoice['id'] ?>" title="View Invoice">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="#e0f2fe"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <div class="flex space-x-3">
+                                            <button class="view-invoice-btn p-1 hover:bg-blue-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="View Invoice">
+                                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </button>
-                                            <button class="edit-invoice-btn text-green-600 hover:text-green-800" data-id="<?= $invoice['id'] ?>" title="Edit Invoice">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <rect x="4" y="4" width="16" height="16" rx="2" fill="#bbf7d0"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" />
+                                            <button class="edit-invoice-btn p-1 hover:bg-emerald-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="Edit Invoice">
+                                                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </button>
-                                            <button class="download-invoice-btn text-purple-600 hover:text-purple-900" data-id="<?= $invoice['id'] ?>" title="Download PDF">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <rect x="4" y="4" width="16" height="16" rx="2" fill="#ede9fe"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            <button class="download-invoice-btn p-1 hover:bg-violet-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="Download Invoice">
+                                                <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </button>
                                             <?php if ($invoice['status'] !== 'paid'): ?>
-                                                <button class="mark-paid-btn text-emerald-600 hover:text-emerald-800" data-id="<?= $invoice['id'] ?>" title="Mark as Paid">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <circle cx="12" cy="12" r="10" fill="#d1fae5"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                <button class="mark-paid-btn p-1 hover:bg-teal-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="Mark as Paid">
+                                                    <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.171-.879-1.171-2.303 0-3.182C10.582 7.72 11.35 7.5 12 7.5c.725 0 1.45.22 2.003.659" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M9 12h6m-6 4h6m-6-8h6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
                                             <?php endif; ?>
-                                            <button class="send-invoice-btn text-sky-600 hover:text-sky-800" data-id="<?= $invoice['id'] ?>" title="Send Invoice">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <rect x="4" y="4" width="16" height="16" rx="2" fill="#bae6fd"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16m16-8H4" />
+                                            <button class="send-invoice-btn p-1 hover:bg-sky-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="Send Invoice">
+                                                <svg class="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </button>
-                                            <button class="delete-invoice-btn text-red-600 hover:text-red-800" data-id="<?= $invoice['id'] ?>" title="Delete Invoice">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <rect x="4" y="4" width="16" height="16" rx="2" fill="#fee2e2"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            <button class="delete-invoice-btn p-1 hover:bg-red-50 rounded-full" data-id="<?= $invoice['id'] ?>" title="Delete Invoice">
+                                                <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </button>
                                         </div>

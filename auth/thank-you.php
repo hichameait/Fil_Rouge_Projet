@@ -342,6 +342,24 @@ if (!isset($_SESSION['payment_completed']) || !$_SESSION['payment_completed']) {
             Need help? <a href="#">Contact us</a>
         </div>
     </div>
+    <?php if ($paymentIntentId): ?>
+    <script>
+    // Save subscription after payment if not already done
+    (async function() {
+        // Prevent duplicate requests (e.g., if user refreshes)
+        if (!window.sessionStorage.getItem('subscription_saved_<?php echo $paymentIntentId; ?>')) {
+            await fetch('payment-intent.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payment_intent_id: <?php echo json_encode($paymentIntentId); ?>,
+                    payment_status: 'succeeded'
+                })
+            });
+            window.sessionStorage.setItem('subscription_saved_<?php echo $paymentIntentId; ?>', '1');
+        }
+    })();
+    </script>
+    <?php endif; ?>
 </body>
-
 </html>

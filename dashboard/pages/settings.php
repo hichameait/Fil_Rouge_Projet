@@ -54,13 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($action) {
         case 'update_clinic':
             updateClinicInfo();
-            // Reload settings after update
-            $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
             break;
         case 'update_automation':
             updateAutomationSettings();
-            // Reload settings after update
-            $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
             break;
         case 'add_user':
             addUser();
@@ -71,6 +67,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete_user':
             deleteUser();
             break;
+        case 'update_profile':
+            updateDentistProfile();
+            break;
+    }
+    // Always reload settings after any update
+    $settings = fetchOne("SELECT * FROM settings WHERE user_id = ?", [$user_id]);
+}
+
+// Handle logo upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['clinic_logo_file']) && $_FILES['clinic_logo_file']['error'] === UPLOAD_ERR_OK) {
+    $uploadDir = __DIR__ . '/../../uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    $ext = pathinfo($_FILES['clinic_logo_file']['name'], PATHINFO_EXTENSION);
+    $filename = 'clinic_logo_' . $user_id . '_' . time() . '.' . $ext;
+    $targetPath = $uploadDir . $filename;
+    if (move_uploaded_file($_FILES['clinic_logo_file']['tmp_name'], $targetPath)) {
+        $logoUrl = '/uploads/' . $filename;
+        $stmt = $pdo->prepare("UPDATE settings SET clinic_logo_url = ? WHERE user_id = ?");
+        $stmt->execute([$logoUrl, $user_id]);
+        // Update $settings for immediate display
+        $settings['clinic_logo_url'] = $logoUrl;
+        $success_message = "Logo uploaded successfully!";
+    } else {
+        $error_message = "Failed to upload logo.";
     }
 }
 
@@ -107,9 +129,40 @@ function updateClinicInfo() {
             json_encode($working_hours),
             $user_id
         ]);
-        $success_message = "Clinic information updated successfully!";
+
+        // Handle additional dentist profile fields if role is dentist
+        if ($_SESSION['role'] === 'dentist') {
+            $certifications = isset($_POST['certifications']) ? json_encode($_POST['certifications']) : '[]';
+            $languages = [];
+            if (isset($_POST['languages']) && isset($_POST['language_levels'])) {
+                foreach ($_POST['languages'] as $i => $lang) {
+                    if (!empty($lang)) {
+                        $languages[] = [
+                            'language' => $lang,
+                            'level' => $_POST['language_levels'][$i] ?? 'basic'
+                        ];
+                    }
+                }
+            }
+
+            $stmt = $pdo->prepare("
+                UPDATE settings SET 
+                    presentation = ?,
+                    certifications = ?,
+                    languages_spoken = ?
+                WHERE user_id = ?
+            ");
+            $stmt->execute([
+                $_POST['presentation'] ?? '',
+                $certifications,
+                json_encode($languages),
+                $user_id
+            ]);
+        }
+
+        $success_message = "Settings updated successfully!";
     } catch (Exception $e) {
-        $error_message = "Error updating clinic info: " . $e->getMessage();
+        $error_message = "Error updating settings: " . $e->getMessage();
     }
 }
 
@@ -117,31 +170,39 @@ function updateAutomationSettings() {
     global $pdo, $user_id, $success_message, $error_message;
     try {
         $automation_settings = [
-            'sms_reminders_enabled' => isset($_POST['sms_reminders_enabled']),
+            // Send to patients
+            'send_email_enabled' => isset($_POST['notifications']['send_email']),
+            'send_sms_enabled' => isset($_POST['notifications']['send_sms']),
+            'send_whatsapp_enabled' => isset($_POST['notifications']['send_whatsapp']),
+            
+            // Receive as dentist
+            'receive_email_enabled' => isset($_POST['notifications']['receive_email']),
+            'receive_sms_enabled' => isset($_POST['notifications']['receive_sms']),
+            'receive_whatsapp_enabled' => isset($_POST['notifications']['receive_whatsapp']),
+            
+            // Existing settings
             'sms_reminder_time' => post_val('sms_reminder_time', '24'),
-            'sms_provider' => post_val('sms_provider', 'twilio'),
-            'sms_sender_name' => post_val('sms_sender_name', ''),
-            'sms_api_key' => post_val('sms_api_key', ''),
             'email_notifications_enabled' => isset($_POST['email_notifications_enabled']),
             'email_appointment_confirmation' => isset($_POST['email_appointment_confirmation']),
             'email_appointment_reminder' => isset($_POST['email_appointment_reminder']),
             'email_payment_receipt' => isset($_POST['email_payment_receipt']),
             'email_treatment_summary' => isset($_POST['email_treatment_summary']),
             'email_custom_template' => isset($_POST['email_custom_template']),
-            'chatbot_enabled' => isset($_POST['chatbot_enabled']),
         ];
+        
         $stmt = $pdo->prepare("
             UPDATE settings SET 
-                automation_settings = ?, updated_at = NOW()
+                automation_settings = ?, 
+                updated_at = NOW()
             WHERE user_id = ?
         ");
         $stmt->execute([
             json_encode($automation_settings),
             $user_id
         ]);
-        $success_message = "Automation settings updated successfully!";
+        $success_message = "Notification settings updated successfully!";
     } catch (Exception $e) {
-        $error_message = "Error updating automation settings: " . $e->getMessage();
+        $error_message = "Error updating notification settings: " . $e->getMessage();
     }
 }
 
@@ -175,10 +236,128 @@ function addUser() {
     }
 }
 
+function updateSettings() {
+    global $pdo, $user_id;
+    
+    try {
+        if ($_SESSION['role'] === 'admin') {
+            // Update global SMTP settings
+            $smtp_settings = json_encode([
+                'host' => $_POST['smtp']['host'] ?? '',
+                'port' => $_POST['smtp']['port'] ?? '',
+                'username' => $_POST['smtp']['username'] ?? '',
+                'password' => $_POST['smtp']['password'] ?? '',
+                'encryption' => $_POST['smtp']['encryption'] ?? 'tls'
+            ]);
+            
+            $stmt = $pdo->prepare("
+                INSERT INTO global_settings (smtp_settings) VALUES (?)
+                ON DUPLICATE KEY UPDATE smtp_settings = VALUES(smtp_settings)
+            ");
+            $stmt->execute([$smtp_settings]);
+        }
+
+        // Update clinic-specific settings
+        $automation_settings = [
+            'email_enabled' => isset($_POST['automation']['email_enabled']),
+            'sms_enabled' => isset($_POST['automation']['sms_enabled'])
+        ];
+
+        $stmt = $pdo->prepare("
+            UPDATE settings SET 
+                automation_settings = ?,
+                updated_at = NOW()
+            WHERE user_id = ?
+        ");
+        $stmt->execute([json_encode($automation_settings), $user_id]);
+
+        return true;
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return false;
+    }
+}
+
+function updateUser() {
+    global $pdo, $success_message, $error_message;
+    try {
+        $userId = $_POST['user_id'] ?? '';
+        $firstName = $_POST['first_name'] ?? '';
+        $lastName = $_POST['last_name'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $role = $_POST['role'] ?? '';
+        $status = $_POST['status'] ?? 'active';
+
+        $stmt = $pdo->prepare("
+            UPDATE users 
+            SET first_name = ?, last_name = ?, email = ?, role = ?, status = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([$firstName, $lastName, $email, $role, $status, $userId]);
+        
+        $success_message = "User updated successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error updating user: " . $e->getMessage();
+    }
+}
+
+function deleteUser() {
+    global $pdo, $success_message, $error_message;
+    try {
+        $userId = $_POST['user_id'] ?? '';
+        
+        if (!$userId) {
+            throw new Exception("User ID is required");
+        }
+
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        
+        $success_message = "User deleted successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error deleting user: " . $e->getMessage();
+    }
+}
+
+function updateDentistProfile() {
+    global $pdo, $user_id, $success_message, $error_message;
+    try {
+        $certifications = isset($_POST['certifications']) ? json_encode($_POST['certifications']) : '[]';
+        $languages = [];
+        if (isset($_POST['languages']) && isset($_POST['language_levels'])) {
+            foreach ($_POST['languages'] as $i => $lang) {
+                if (!empty($lang)) {
+                    $languages[] = [
+                        'language' => $lang,
+                        'level' => $_POST['language_levels'][$i] ?? 'basic'
+                    ];
+                }
+            }
+        }
+        $stmt = $pdo->prepare("
+            UPDATE settings SET 
+                presentation = ?,
+                certifications = ?,
+                languages_spoken = ?,
+                updated_at = NOW()
+            WHERE user_id = ?
+        ");
+        $stmt->execute([
+            $_POST['presentation'] ?? '',
+            $certifications,
+            json_encode($languages),
+            $user_id
+        ]);
+        $success_message = "Profile updated successfully!";
+    } catch (Exception $e) {
+        $error_message = "Error updating profile: " . $e->getMessage();
+    }
+}
+
 // Parse working hours and automation settings (always after $settings is up-to-date)
 $working_hours = json_decode($settings['working_hours'] ?? '{}', true);
 
-// Ensure $automation_settings is always an array with all keys (for checkbox checked state)
+// Always parse automation_settings after $settings is reloaded
 $default_automation_settings = [
     'sms_reminders_enabled' => false,
     'sms_reminder_time' => '24',
@@ -192,6 +371,13 @@ $default_automation_settings = [
     'email_treatment_summary' => false,
     'email_custom_template' => false,
     'chatbot_enabled' => false,
+    // Add all notification keys you use in the form, default to false
+    'send_email_enabled' => false,
+    'send_sms_enabled' => false,
+    'send_whatsapp_enabled' => false,
+    'receive_email_enabled' => false,
+    'receive_sms_enabled' => false,
+    'receive_whatsapp_enabled' => false,
 ];
 $automation_settings = json_decode($settings['automation_settings'] ?? '{}', true);
 if (!is_array($automation_settings)) $automation_settings = [];
@@ -221,12 +407,16 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                 <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600" data-tab="clinic">
                     <i class="fas fa-building mr-2"></i>Clinic Information
                 </button>
-                <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="users">
-                    <i class="fas fa-users mr-2"></i>User Management
-                </button>
-                <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="automation">
-                    <i class="fas fa-robot mr-2"></i>Automation
-                </button>
+                <?php if ($_SESSION['role'] === 'dentist'): ?>
+                    <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="profile">
+                        <i class="fas fa-user-md mr-2"></i>Professional Profile
+                    </button>
+                <?php endif; ?>
+                <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="users">
+                        <i class="fas fa-users mr-2"></i>User Management
+                    </button>
+                <?php endif; ?>
                 <button type="button" class="settings-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="notifications">
                     <i class="fas fa-bell mr-2"></i>Notifications
                 </button>
@@ -235,7 +425,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
         <!-- Clinic Information Tab -->
         <div id="clinic-tab" class="settings-tab-content p-6">
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-6" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update_clinic">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -262,6 +452,15 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                         <label for="clinic_logo_url" class="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
                         <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="mt-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ou téléchargez un logo</label>
+                            <input type="file" name="clinic_logo_file" accept="image/*" class="block w-full text-sm text-gray-500">
+                        </div>
+                        <?php if (!empty($settings['clinic_logo_url'])): ?>
+                            <div class="mt-2">
+                                <img src="<?= htmlspecialchars($settings['clinic_logo_url']) ?>" alt="Clinic Logo" class="h-16 rounded shadow border">
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div>
                         <label for="clinic_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -314,6 +513,89 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                 </div>
             </form>
         </div>
+
+        <!-- Professional Profile Tab (Dentist Only) -->
+        <?php if ($_SESSION['role'] === 'dentist'): ?>
+            <div id="profile-tab" class="settings-tab-content p-6 hidden">
+                <form method="POST" class="space-y-6">
+                    <input type="hidden" name="action" value="update_profile">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Professional Presentation</label>
+                        <textarea name="presentation" rows="4" 
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Write a brief introduction about yourself and your practice..."
+                        ><?= htmlspecialchars($settings['presentation'] ?? '') ?></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Certifications & Education</label>
+                        <div id="certifications" class="space-y-3">
+                            <?php 
+                            $certifications = json_decode($settings['certifications'] ?? '[]', true) ?: [];
+                            foreach ($certifications as $cert): 
+                            ?>
+                            <div class="flex items-center gap-2 certification-item">
+                                <input type="text" name="certifications[]" value="<?= htmlspecialchars($cert) ?>" 
+                                    class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                                <button type="button" class="remove-cert p-2 text-red-600 hover:text-red-800">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <button type="button" id="add-cert" class="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Certification
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Languages Spoken</label>
+                        <div id="languages" class="space-y-3">
+                            <?php 
+                            $languages = json_decode($settings['languages_spoken'] ?? '[]', true) ?: [];
+                            foreach ($languages as $lang): 
+                            ?>
+                            <div class="flex items-center gap-2 language-item">
+                                <input type="text" name="languages[]" placeholder="Language" 
+                                    value="<?= htmlspecialchars($lang['language'] ?? '') ?>" 
+                                    class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                                <select name="language_levels[]" 
+                                    class="w-40 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="native" <?= ($lang['level'] ?? '') === 'native' ? 'selected' : '' ?>>Native</option>
+                                    <option value="fluent" <?= ($lang['level'] ?? '') === 'fluent' ? 'selected' : '' ?>>Fluent</option>
+                                    <option value="intermediate" <?= ($lang['level'] ?? '') === 'intermediate' ? 'selected' : '' ?>>Intermediate</option>
+                                    <option value="basic" <?= ($lang['level'] ?? '') === 'basic' ? 'selected' : '' ?>>Basic</option>
+                                </select>
+                                <button type="button" class="remove-lang p-2 text-red-600 hover:text-red-800">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <button type="button" id="add-lang" class="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Language
+                        </button>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            Save Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
 
         <!-- User Management Tab -->
         <div id="users-tab" class="settings-tab-content p-6 hidden">
@@ -410,256 +692,409 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
             </div>
         </div>
 
-        <!-- Automation Tab -->
-        <div id="automation-tab" class="settings-tab-content p-6 hidden">
-            <h3 class="text-lg font-medium text-gray-900 mb-6">Automation Settings</h3>
-            <form method="POST" class="space-y-6">
-                <input type="hidden" name="action" value="update_automation">
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h4 class="text-lg font-medium text-gray-900">SMS Appointment Reminders</h4>
-                            <p class="text-sm text-gray-600">Automatically send SMS reminders to patients</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="sms_reminders_enabled" name="sms_reminders_enabled"
-                                <?= $automation_settings['sms_reminders_enabled'] ? 'checked' : '' ?>>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Time</label>
-                            <select class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_reminder_time">
-                                <option value="24" <?= $automation_settings['sms_reminder_time'] == '24' ? 'selected' : '' ?>>24 hours before</option>
-                                <option value="12" <?= $automation_settings['sms_reminder_time'] == '12' ? 'selected' : '' ?>>12 hours before</option>
-                                <option value="6" <?= $automation_settings['sms_reminder_time'] == '6' ? 'selected' : '' ?>>6 hours before</option>
-                                <option value="2" <?= $automation_settings['sms_reminder_time'] == '2' ? 'selected' : '' ?>>2 hours before</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">SMS Provider</label>
-                            <select class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_provider">
-                                <option value="twilio" <?= $automation_settings['sms_provider'] == 'twilio' ? 'selected' : '' ?>>Twilio</option>
-                                <option value="nexmo" <?= $automation_settings['sms_provider'] == 'nexmo' ? 'selected' : '' ?>>Nexmo</option>
-                                <option value="custom" <?= $automation_settings['sms_provider'] == 'custom' ? 'selected' : '' ?>>Custom Provider</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_sender_name"
-                                value="<?= htmlspecialchars($automation_settings['sms_sender_name']) ?>">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-3 py-2" name="sms_api_key"
-                                value="<?= htmlspecialchars($automation_settings['sms_api_key']) ?>">
-                        </div>
-                    </div>
-                </div>
-                <!-- Email Notifications -->
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h4 class="text-lg font-medium text-gray-900">Email Notifications</h4>
-                            <p class="text-sm text-gray-600">Send email notifications for various events</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="email_notifications_enabled" name="email_notifications_enabled"
-                                <?= $automation_settings['email_notifications_enabled'] ? 'checked' : '' ?>>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_appointment_confirmation"
-                                <?= $automation_settings['email_appointment_confirmation'] ? 'checked' : '' ?>>
-                            <span class="ml-2 text-sm text-gray-700">New appointment confirmations</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_appointment_reminder"
-                                <?= $automation_settings['email_appointment_reminder'] ? 'checked' : '' ?>>
-                            <span class="ml-2 text-sm text-gray-700">Appointment reminders</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_payment_receipt"
-                                <?= $automation_settings['email_payment_receipt'] ? 'checked' : '' ?>>
-                            <span class="ml-2 text-sm text-gray-700">Payment receipts</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_treatment_summary"
-                                <?= $automation_settings['email_treatment_summary'] ? 'checked' : '' ?>>
-                            <span class="ml-2 text-sm text-gray-700">Treatment summaries</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" name="email_custom_template"
-                                <?= $automation_settings['email_custom_template'] ? 'checked' : '' ?>>
-                            <span class="ml-2 text-sm text-gray-700">Custom email template</span>
-                        </label>
-                    </div>
-                </div>
-                <!-- Chatbot Integration -->
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h4 class="text-lg font-medium text-gray-900">Chatbot Integration</h4>
-                            <p class="text-sm text-gray-600">AI-powered chatbot for patient inquiries</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" id="chatbot_enabled" name="chatbot_enabled"
-                                <?= $automation_settings['chatbot_enabled'] ? 'checked' : '' ?>>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        <p>Enable AI chatbot to handle common patient questions about:</p>
-                        <ul class="list-disc list-inside mt-2 space-y-1">
-                            <li>Appointment scheduling</li>
-                            <li>Office hours and location</li>
-                            <li>Services and pricing</li>
-                            <li>Pre-appointment instructions</li>
-                            <li>Insurance and billing</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-save mr-2"></i>Save Automation Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-
         <!-- Notifications Tab -->
         <div id="notifications-tab" class="settings-tab-content p-6 hidden">
-            <h3 class="text-lg font-medium text-gray-900 mb-6">Notification Preferences</h3>
-            <div class="space-y-6">
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <h4 class="text-lg font-medium text-gray-900 mb-4">System Notifications</h4>
-                    <div class="space-y-3">
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">New patient registrations</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Appointment cancellations</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Payment received</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Overdue invoices</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Custom system alert</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                    </div>
+            <?php if ($_SESSION['role'] === 'admin'): ?>
+                <!-- Admin SMTP and SMS settings remain unchanged -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Global Email Settings</h4>
+                    <?php 
+                    $global_settings = fetchOne("SELECT * FROM global_settings LIMIT 1");
+                    $smtp = json_decode($global_settings['smtp_settings'] ?? '{}', true);
+                    ?>
+                    <form method="POST" action="update_global_settings.php">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">SMTP Host</label>
+                                <input type="text" name="smtp[host]" value="<?= htmlspecialchars($smtp['host'] ?? '') ?>" class="w-full border rounded-md px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">SMTP Port</label>
+                                <input type="text" name="smtp[port]" value="<?= htmlspecialchars($smtp['port'] ?? '') ?>" class="w-full border rounded-md px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">SMTP Username</label>
+                                <input type="text" name="smtp[username]" value="<?= htmlspecialchars($smtp['username'] ?? '') ?>" class="w-full border rounded-md px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">SMTP Password</label>
+                                <input type="password" name="smtp[password]" value="<?= htmlspecialchars($smtp['password'] ?? '') ?>" class="w-full border rounded-md px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Encryption</label>
+                                <select name="smtp[encryption]" class="w-full border rounded-md px-3 py-2">
+                                    <option value="tls" <?= ($smtp['encryption'] ?? '') === 'tls' ? 'selected' : '' ?>>TLS</option>
+                                    <option value="ssl" <?= ($smtp['encryption'] ?? '') === 'ssl' ? 'selected' : '' ?>>SSL</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Save SMTP Settings
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <h4 class="text-lg font-medium text-gray-900 mb-4">Daily Summary</h4>
-                    <div class="space-y-3">
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Daily appointment summary</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Revenue summary</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Patient no-shows</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
-                        <label class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Custom summary</span>
-                            <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        </label>
+
+                <!-- SMS Provider Settings (Admin Only) -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-900">SMS Provider Settings</h4>
+                            <p class="text-sm text-gray-600">Configure SMS gateway settings for appointment reminders</p>
+                        </div>
                     </div>
+                    
+                    <?php 
+                    $sms_settings = json_decode($global_settings['sms_provider_settings'] ?? '{}', true);
+                    $current_provider = $sms_settings['provider'] ?? 'twilio';
+                    ?>
+
+                    <form method="POST" action="update_sms_settings.php" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">SMS Provider</label>
+                                <select name="sms[provider]" id="sms_provider" class="w-full border rounded-md px-3 py-2">
+                                    <option value="twilio" <?= $current_provider === 'twilio' ? 'selected' : '' ?>>Twilio</option>
+                                    <option value="vonage" <?= $current_provider === 'vonage' ? 'selected' : '' ?>>Vonage (Nexmo)</option>
+                                    <option value="messagebird" <?= $current_provider === 'messagebird' ? 'selected' : '' ?>>MessageBird</option>
+                                    <option value="clicksend" <?= $current_provider === 'clicksend' ? 'selected' : '' ?>>ClickSend</option>
+                                </select>
+                            </div>
+
+                            <!-- Twilio Settings -->
+                            <div class="provider-settings" id="twilio-settings">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Account SID</label>
+                                        <input type="text" name="sms[twilio_account_sid]" 
+                                            value="<?= htmlspecialchars($sms_settings['twilio_account_sid'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Auth Token</label>
+                                        <input type="password" name="sms[twilio_auth_token]" 
+                                            value="<?= htmlspecialchars($sms_settings['twilio_auth_token'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">From Number</label>
+                                        <input type="text" name="sms[twilio_from_number]" 
+                                            value="<?= htmlspecialchars($sms_settings['twilio_from_number'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2"
+                                            placeholder="+1234567890">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vonage Settings -->
+                            <div class="provider-settings hidden" id="vonage-settings">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">API Key</label>
+                                        <input type="text" name="sms[vonage_api_key]" 
+                                            value="<?= htmlspecialchars($sms_settings['vonage_api_key'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">API Secret</label>
+                                        <input type="password" name="sms[vonage_api_secret]" 
+                                            value="<?= htmlspecialchars($sms_settings['vonage_api_secret'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">From Name/Number</label>
+                                        <input type="text" name="sms[vonage_from]" 
+                                            value="<?= htmlspecialchars($sms_settings['vonage_from'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MessageBird Settings -->
+                            <div class="provider-settings hidden" id="messagebird-settings">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">API Key</label>
+                                        <input type="text" name="sms[messagebird_api_key]" 
+                                            value="<?= htmlspecialchars($sms_settings['messagebird_api_key'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Originator</label>
+                                        <input type="text" name="sms[messagebird_originator]" 
+                                            value="<?= htmlspecialchars($sms_settings['messagebird_originator'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ClickSend Settings -->
+                            <div class="provider-settings hidden" id="clicksend-settings">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Username</label>
+                                        <input type="text" name="sms[clicksend_username]" 
+                                            value="<?= htmlspecialchars($sms_settings['clicksend_username'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">API Key</label>
+                                        <input type="password" name="sms[clicksend_api_key]" 
+                                            value="<?= htmlspecialchars($sms_settings['clicksend_api_key'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">From Number</label>
+                                        <input type="text" name="sms[clicksend_from]" 
+                                            value="<?= htmlspecialchars($sms_settings['clicksend_from'] ?? '') ?>" 
+                                            class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Save SMS Settings
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            <?php endif; ?>
+
+            <!-- Individual Notification Preferences (Both Admin & Dentist) -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <form method="POST" action="" class="space-y-6">
+                    <input type="hidden" name="action" value="update_automation">
+                    
+                    <!-- Outgoing Notifications (Send to Patients) -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">Patient Communication Preferences</h4>
+                        <p class="text-sm text-gray-600 mb-4">Choose how you want to communicate with your patients</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">Email Notifications</label>
+                                    <p class="text-sm text-gray-500">Send appointment confirmations and reminders via email</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[send_email]" class="sr-only peer" 
+                                        <?= ($automation_settings['send_email_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">SMS Notifications</label>
+                                    <p class="text-sm text-gray-500">Send appointment reminders via SMS</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[send_sms]" class="sr-only peer"
+                                        <?= ($automation_settings['send_sms_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">WhatsApp Notifications</label>
+                                    <p class="text-sm text-gray-500">Send appointment reminders via WhatsApp</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[send_whatsapp]" class="sr-only peer"
+                                        <?= ($automation_settings['send_whatsapp_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Incoming Notifications (Receive as Dentist) -->
+                    <div>
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">Your Notification Preferences</h4>
+                        <p class="text-sm text-gray-600 mb-4">Choose how you want to receive notifications</p>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">Receive Email Notifications</label>
+                                    <p class="text-sm text-gray-500">Get notified about new appointments, cancellations, and updates</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[receive_email]" class="sr-only peer"
+                                        <?= ($automation_settings['receive_email_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">Receive SMS Notifications</label>
+                                    <p class="text-sm text-gray-500">Get SMS alerts for urgent updates and changes</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[receive_sms]" class="sr-only peer"
+                                        <?= ($automation_settings['receive_sms_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                                <div>
+                                    <label class="font-medium text-gray-900">Receive WhatsApp Notifications</label>
+                                    <p class="text-sm text-gray-500">Get instant WhatsApp messages for important updates</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notifications[receive_whatsapp]" class="sr-only peer"
+                                        <?= ($automation_settings['receive_whatsapp_enabled'] ?? false) ? 'checked' : '' ?>>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            Save Notification Preferences
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add User Modal -->
-<div id="addUserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <button id="closeAddUserModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
-        <h3 class="text-lg font-semibold mb-4">Add User</h3>
-        <form method="POST" class="space-y-4">
-            <input type="hidden" name="action" value="add_user">
-            <div>
-                <label class="block text-sm font-medium mb-1">First Name</label>
-                <input type="text" name="add_first_name" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Last Name</label>
-                <input type="text" name="add_last_name" class="w-full border border-gray-300 rounded-md px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Email</label>
-                <input type="email" name="add_email" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Role</label>
-                <select name="add_role" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    <option value="assistant">Assistant</option>
-                    <option value="receptionist">Receptionist</option>
-                    <option value="dentist">Dentist</option>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching
+        const tabButtons = document.querySelectorAll('.settings-tab-btn');
+        const tabContents = document.querySelectorAll('.settings-tab-content');
+
+        // Always show only the first tab by default
+        tabContents.forEach((content, idx) => {
+            if (idx === 0) {
+                content.classList.remove('hidden');
+            } else {
+                content.classList.add('hidden');
+            }
+        });
+        tabButtons.forEach((btn, idx) => {
+            if (idx === 0) {
+                btn.classList.add('border-blue-500', 'text-blue-600');
+            } else {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+            }
+        });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                // Remove active classes
+                tabButtons.forEach(btn => btn.classList.remove('border-blue-500', 'text-blue-600'));
+                tabContents.forEach(content => content.classList.add('hidden'));
+                // Add active classes
+                button.classList.add('border-blue-500', 'text-blue-600');
+                const tabContent = document.getElementById(`${tabId}-tab`);
+                if (tabContent) tabContent.classList.remove('hidden');
+            });
+        });
+
+        // Add user button
+        document.getElementById('addUserBtn').addEventListener('click', () => {
+            // Open the add user modal (you need to implement this)
+            openAddUserModal();
+        });
+
+        // Add certification button
+        const addCertBtn = document.getElementById('add-cert');
+        addCertBtn.addEventListener('click', () => {
+            const container = document.getElementById('certifications');
+            const newCert = document.createElement('div');
+            newCert.className = 'flex items-center gap-2 certification-item';
+            newCert.innerHTML = `
+                <input type="text" name="certifications[]" placeholder="Enter certification" 
+                    class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                <button type="button" class="remove-cert p-2 text-red-600 hover:text-red-800">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(newCert);
+        });
+
+        // Add language button
+        const addLangBtn = document.getElementById('add-lang');
+        addLangBtn.addEventListener('click', () => {
+            const container = document.getElementById('languages');
+            const newLang = document.createElement('div');
+            newLang.className = 'flex items-center gap-2 language-item';
+            newLang.innerHTML = `
+                <input type="text" name="languages[]" placeholder="Enter language" 
+                    class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                <select name="language_levels[]" 
+                    class="w-40 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="native">Native</option>
+                    <option value="fluent">Fluent</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="basic">Basic</option>
                 </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Password</label>
-                <input type="password" name="add_password" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-            </div>
-            <div class="flex justify-end">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add User</button>
-            </div>
-        </form>
-    </div>
-</div>
+                <button type="button" class="remove-lang p-2 text-red-600 hover:text-red-800">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(newLang);
+        });
 
-<script>
-// Tab switching logic
-document.querySelectorAll('.settings-tab-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('border-blue-500', 'text-blue-600'));
-        this.classList.add('border-blue-500', 'text-blue-600');
-        document.querySelectorAll('.settings-tab-content').forEach(tab => tab.classList.add('hidden'));
-        const tabId = this.getAttribute('data-tab');
-        if (tabId === 'clinic') document.getElementById('clinic-tab').classList.remove('hidden');
-        if (tabId === 'users') document.getElementById('users-tab').classList.remove('hidden');
-        if (tabId === 'automation') document.getElementById('automation-tab').classList.remove('hidden');
-        if (tabId === 'notifications') document.getElementById('notifications-tab').classList.remove('hidden');
+        // Remove buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-cert')) {
+                e.target.closest('.certification-item').remove();
+            }
+            if (e.target.closest('.remove-lang')) {
+                e.target.closest('.language-item').remove();
+            }
+        });
+
+        // SMS Provider Settings
+        const smsProvider = document.getElementById('sms_provider');
+        const providerSettings = document.querySelectorAll('.provider-settings');
+
+        function showSelectedProviderSettings() {
+            const selectedProvider = smsProvider.value;
+            providerSettings.forEach(settings => {
+                settings.classList.add('hidden');
+            });
+            document.getElementById(`${selectedProvider}-settings`).classList.remove('hidden');
+        }
+
+        smsProvider.addEventListener('change', showSelectedProviderSettings);
+        showSelectedProviderSettings(); // Show initial selection
     });
-});
 
-// Enable/disable time inputs based on "Closed" checkbox
-document.querySelectorAll('.day-closed-checkbox').forEach(function(checkbox) {
-    checkbox.addEventListener('change', function() {
-        const parent = this.closest('.flex.items-center');
-        if (!parent) return;
-        const timeInputs = parent.querySelectorAll('.day-time-input');
-        timeInputs.forEach(input => input.disabled = this.checked);
+    // Add save notification preferences functionality
+    document.querySelectorAll('input[type="checkbox"][name^="notifications"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const form = this.closest('form');
+            const formData = new FormData(form);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // If the response is JSON, handle it, else ignore (for normal POST)
+                try { return response.json(); } catch { return {}; }
+            })
+            .then(data => {
+                if (data && data.success) {
+                    // Show success message if needed
+                }
+            });
+        });
     });
-});
-
-// Modal logic for Add User
-const addUserBtn = document.getElementById('addUserBtn');
-const addUserModal = document.getElementById('addUserModal');
-const closeAddUserModal = document.getElementById('closeAddUserModal');
-
-addUserBtn.addEventListener('click', () => {
-    addUserModal.classList.remove('hidden');
-});
-closeAddUserModal.addEventListener('click', () => {
-    addUserModal.classList.add('hidden');
-});
-window.addEventListener('click', (e) => {
-    if (e.target === addUserModal) addUserModal.classList.add('hidden');
-});
-</script>
+    </script>

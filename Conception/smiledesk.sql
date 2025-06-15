@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 13, 2025 at 11:36 AM
+-- Generation Time: Jun 13, 2025 at 01:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -68,7 +68,14 @@ INSERT INTO `activities` (`id`, `user_id`, `type`, `title`, `description`, `meta
 (24, 2, 'payment_received', 'Payment received', 'Payment received for invoice #2', NULL, '2025-06-09 17:02:03'),
 (25, 2, 'payment_received', 'Payment received', 'Payment received for invoice #2', NULL, '2025-06-09 17:02:03'),
 (26, 2, 'payment_received', 'Payment received', 'Payment received for invoice #2', NULL, '2025-06-09 17:02:03'),
-(27, 2, 'document_deleted', 'Document deleted', 'Document ID 1 was deleted', NULL, '2025-06-09 17:06:16');
+(27, 2, 'document_deleted', 'Document deleted', 'Document ID 1 was deleted', NULL, '2025-06-09 17:06:16'),
+(28, 5, 'patient_added', 'New patient registered', 'Adam Bouzine was registered', NULL, '2025-06-13 09:45:56'),
+(29, 5, 'appointment_scheduled', 'New appointment scheduled', 'Appointment scheduled for 2025-06-15 at 11:10', NULL, '2025-06-13 09:47:19'),
+(30, 5, 'payment_received', 'Payment received', 'Payment received for invoice #3', NULL, '2025-06-13 09:50:12'),
+(31, 5, 'payment_received', 'Payment received', 'Payment received for invoice #3', NULL, '2025-06-13 09:50:12'),
+(32, 5, 'payment_received', 'Payment received', 'Payment received for invoice #3', NULL, '2025-06-13 09:50:12'),
+(33, 5, 'document_uploaded', 'Document uploaded', 'mcd was uploaded', NULL, '2025-06-13 09:50:43'),
+(34, 5, 'appointment_updated', 'Appointment updated', 'Appointment #7 was updated', NULL, '2025-06-13 09:54:56');
 
 -- --------------------------------------------------------
 
@@ -103,7 +110,8 @@ INSERT INTO `appointments` (`id`, `user_id`, `patient_id`, `base_service_id`, `d
 (3, 2, 3, 8, 2, '2025-06-08', '14:00:00', 30, NULL, 'scheduled', NULL, 0, '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (4, 2, 4, 1, 2, '2025-06-09', '09:00:00', 60, NULL, 'completed', NULL, 0, '2025-06-08 19:00:43', '2025-06-09 12:10:48'),
 (5, 2, 1, 3, 2, '2025-06-11', '17:59:00', 45, NULL, 'scheduled', '', 0, '2025-06-09 11:41:49', '2025-06-09 11:41:49'),
-(6, 2, 5, 3, 2, '2025-06-09', '14:15:00', 45, NULL, 'completed', '', 0, '2025-06-09 12:12:32', '2025-06-09 16:59:01');
+(6, 2, 5, 3, 2, '2025-06-09', '14:15:00', 45, NULL, 'completed', '', 0, '2025-06-09 12:12:32', '2025-06-09 16:59:01'),
+(7, 5, 6, 7, 5, '2025-06-15', '11:10:00', 60, NULL, 'confirmed', '', 0, '2025-06-13 09:47:19', '2025-06-13 09:54:56');
 
 -- --------------------------------------------------------
 
@@ -206,6 +214,13 @@ CREATE TABLE `documents` (
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `documents`
+--
+
+INSERT INTO `documents` (`id`, `user_id`, `patient_id`, `appointment_id`, `type`, `title`, `description`, `file_path`, `file_size`, `mime_type`, `uploaded_by`, `created_at`) VALUES
+(2, 5, NULL, NULL, 'other', 'mcd', '', 'uploads/documents/684bf473d9428.pdf', 129821, 'application/pdf', 5, '2025-06-13 09:50:43');
+
 -- --------------------------------------------------------
 
 --
@@ -240,7 +255,24 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`id`, `user_id`, `patient_id`, `appointment_id`, `base_service_id`, `invoice_number`, `description`, `quantity`, `unit_price`, `subtotal`, `tax_amount`, `discount_amount`, `total_amount`, `status`, `due_date`, `paid_date`, `payment_method`, `notes`, `created_at`, `updated_at`) VALUES
-(2, 2, 5, NULL, 3, 'INV-20250609-473', 'Tooth-colored filling', 1, 200.00, 200.00, 0.00, 0.00, 200.00, 'paid', '2025-06-11', '2025-06-09 16:02:03', 'insurance', '', '2025-06-09 17:01:45', '2025-06-09 17:02:03');
+(2, 2, 5, NULL, 3, 'INV-20250609-473', 'Tooth-colored filling', 1, 200.00, 200.00, 0.00, 0.00, 200.00, 'paid', '2025-06-11', '2025-06-09 16:02:03', 'insurance', '', '2025-06-09 17:01:45', '2025-06-09 17:02:03'),
+(3, 5, 6, NULL, NULL, 'INV-20250613-993', '', 1, 0.00, 669.00, 0.00, 0.00, 669.00, 'paid', '2025-06-20', '2025-06-13 08:50:12', 'cash', '', '2025-06-13 09:48:03', '2025-06-13 09:50:12');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `invoice_items`
+--
+
+CREATE TABLE `invoice_items` (
+  `id` int(11) NOT NULL,
+  `invoice_id` int(11) NOT NULL,
+  `service_id` int(11) DEFAULT NULL,
+  `description` varchar(255) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -279,7 +311,8 @@ INSERT INTO `patients` (`id`, `user_id`, `patient_number`, `first_name`, `last_n
 (2, 2, 'P002', 'Fatima', 'Alaoui', 'fatima.alaoui@email.com', '+212-662-234567', '1990-03-22', 'female', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'inactive', '2025-06-08 19:00:43', '2025-06-09 11:48:12'),
 (3, 2, 'P003', 'Omar', 'Tazi', 'omar.tazi@email.com', '+212-663-345678', '1978-11-08', 'male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
 (4, 2, 'P004', 'Aicha', 'Mansouri', 'aicha.mansouri@email.com', '+212-664-456789', '1995-09-12', 'female', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-06-08 19:00:43', '2025-06-08 19:00:43'),
-(5, 2, 'P0005', 'LEA MAELYS', 'NIEZ', 'midelt-city2021@solarunited.net', '0631318173', '1991-05-09', 'female', '17 Rue Saint-Jean\r\nLANGON', NULL, NULL, '', NULL, NULL, NULL, 'active', '2025-06-09 11:48:48', '2025-06-09 11:48:48');
+(5, 2, 'P0005', 'LEA MAELYS', 'NIEZ', 'midelt-city2021@solarunited.net', '0631318173', '1991-05-09', 'female', '17 Rue Saint-Jean\r\nLANGON', NULL, NULL, '', NULL, NULL, NULL, 'active', '2025-06-09 11:48:48', '2025-06-09 11:48:48'),
+(6, 5, 'P0001', 'Adam', 'Bouzine', 'adam@gmail.com', '099828829', '2005-09-01', 'male', '', NULL, NULL, '', NULL, NULL, NULL, 'active', '2025-06-13 09:45:56', '2025-06-13 09:45:56');
 
 -- --------------------------------------------------------
 
@@ -334,7 +367,8 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`id`, `user_id`, `clinic_name`, `clinic_address`, `clinic_phone`, `clinic_email`, `clinic_website`, `clinic_logo_url`, `clinic_description`, `working_hours`, `other_settings`, `created_at`, `updated_at`, `automation_settings`) VALUES
-(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43', NULL);
+(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43', NULL),
+(2, 5, 'Dr Mohammed Salmi', '45 RUE MELOUIA TADAOUT', '0631318173', 'its.aitbenalla.hichame@gmail.com', '', '', '', '{\"monday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"tuesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"wednesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"thursday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"friday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"saturday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"sunday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false}}', NULL, '2025-06-13 09:44:13', '2025-06-13 09:44:34', '{\"sms_reminders_enabled\":true,\"sms_reminder_time\":\"24\",\"sms_provider\":\"twilio\",\"sms_sender_name\":\"\",\"sms_api_key\":\"\",\"email_notifications_enabled\":true,\"email_appointment_confirmation\":true,\"email_appointment_reminder\":true,\"email_payment_receipt\":true,\"email_treatment_summary\":true,\"email_custom_template\":false,\"chatbot_enabled\":false}');
 
 -- --------------------------------------------------------
 
@@ -430,7 +464,8 @@ INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `role
 (1, 'admin@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Admin', 'User', 'admin', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:30', NULL),
 (2, 'dr.smith@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'John', 'Smith', 'dentist', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:27', NULL),
 (3, 'assistant@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Sarah', 'Johnson', 'assistant', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:23', NULL),
-(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, NULL, 'active', '2025-06-10 22:29:37', '2025-06-08 19:06:29', '2025-06-10 22:29:37', NULL);
+(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, NULL, 'active', '2025-06-10 22:29:37', '2025-06-08 19:06:29', '2025-06-10 22:29:37', NULL),
+(5, 'its.aitbenalla.hichame@gmail.com', '$2y$10$KgGCY/eyN8milJhczZoIWO.JOi7d.mTr8L/R.9/qqnsLDP.MCWSh.', 'Hichame', 'Ait benalla', 'dentist', NULL, '45 RUE MELOUIA TADAOUT\nMidelt, 93150', NULL, NULL, 'active', NULL, '2025-06-13 09:36:59', '2025-06-13 09:37:15', NULL);
 
 --
 -- Indexes for dumped tables
@@ -498,6 +533,14 @@ ALTER TABLE `invoices`
   ADD KEY `service_id` (`base_service_id`);
 
 --
+-- Indexes for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `invoice_id` (`invoice_id`),
+  ADD KEY `service_id` (`service_id`);
+
+--
 -- Indexes for table `patients`
 --
 ALTER TABLE `patients`
@@ -557,13 +600,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activities`
 --
 ALTER TABLE `activities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `appointment_logs`
@@ -587,19 +630,25 @@ ALTER TABLE `dentist_service_prices`
 -- AUTO_INCREMENT for table `documents`
 --
 ALTER TABLE `documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `service_categories`
@@ -611,7 +660,7 @@ ALTER TABLE `service_categories`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sms_logs`
@@ -635,7 +684,7 @@ ALTER TABLE `subscription_plans`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -695,6 +744,13 @@ ALTER TABLE `invoices`
   ADD CONSTRAINT `invoices_ibfk_4` FOREIGN KEY (`base_service_id`) REFERENCES `base_services` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  ADD CONSTRAINT `invoice_items_ibfk_1` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `invoice_items_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `base_services` (`id`) ON DELETE SET NULL;
+
+--
 -- Constraints for table `patients`
 --
 ALTER TABLE `patients`
@@ -736,19 +792,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
--- Add missing invoice_items table
-CREATE TABLE `invoice_items` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `invoice_id` int(11) NOT NULL,
-  `service_id` int(11) DEFAULT NULL,
-  `description` varchar(255) NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `invoice_id` (`invoice_id`),
-  KEY `service_id` (`service_id`),
-  CONSTRAINT `invoice_items_ibfk_1` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `invoice_items_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `base_services` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

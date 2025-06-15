@@ -1500,6 +1500,9 @@ main .hero {
   padding: 4rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
 }
 
 .text {

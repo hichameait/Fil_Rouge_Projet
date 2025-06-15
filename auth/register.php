@@ -38,13 +38,15 @@ if (isset($_POST["signup"])) {
             $nextId = $row ? ($row['max_id'] + 1) : 1;
 
             $hashed = password_hash($passw, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (id, email, password, first_name, role, status) VALUES (:id, :email, :motpass, :prenom, :role, :status)";
+            // Add last_name as empty string to avoid SQL error
+            $sql = "INSERT INTO users (id, email, password, first_name, last_name, role, status) VALUES (:id, :email, :motpass, :prenom, :nomfamille, :role, :status)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ":id" => $nextId,
                 ":email" => $email,
                 ":motpass" => $hashed,
                 ":prenom" => $name,
+                ":nomfamille" => '', // Provide empty last_name
                 ":role" => 'dentist',
                 ":status" => 'inactive'
             ]);
