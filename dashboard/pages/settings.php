@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['clinic_logo_file']) 
     $filename = 'clinic_logo_' . $user_id . '_' . time() . '.' . $ext;
     $targetPath = $uploadDir . $filename;
     if (move_uploaded_file($_FILES['clinic_logo_file']['tmp_name'], $targetPath)) {
-        $logoUrl = '/uploads/' . $filename;
+        $logoUrl = './uploads/' . $filename;
         $stmt = $pdo->prepare("UPDATE settings SET clinic_logo_url = ? WHERE user_id = ?");
         $stmt->execute([$logoUrl, $user_id]);
         // Update $settings for immediate display
@@ -458,7 +458,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                         </div>
                         <?php if (!empty($settings['clinic_logo_url'])): ?>
                             <div class="mt-2">
-                                <img src="<?= htmlspecialchars($settings['clinic_logo_url']) ?>" alt="Clinic Logo" class="h-16 rounded shadow border">
+                                <img src=".<?= htmlspecialchars($settings['clinic_logo_url']) ?>" alt="Clinic Logo" class="h-16 rounded shadow border">
                             </div>
                         <?php endif; ?>
                     </div>

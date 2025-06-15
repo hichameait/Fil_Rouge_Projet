@@ -1,18 +1,18 @@
 <?php
 session_start();
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/auth.php';
 
 if (!isset($_SESSION['is_logged']) || !$_SESSION['is_logged']) {
     header('Location: ../auth/login.php');
     exit;
 }
 
-require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/includes/auth.php';
 
-if (!isLoggedIn()) {
-    header('Location: ../auth/login.php');
-    exit;
-}
+// if (!isLoggedIn()) {
+//     header('Location: ../auth/login.php');
+//     exit;
+// }
 
 $current_page = $_GET['page'] ?? 'dashboard';
 $user = getCurrentUser();
