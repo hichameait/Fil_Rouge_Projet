@@ -86,26 +86,28 @@ $profile_img = !empty($dentist['clinic_logo_url']) ? $dentist['clinic_logo_url']
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/profile.css">
+    <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body>
     <!-- Header -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="/" class="logo">SmileDesk</a>
-                <div class="nav-links">
-                    <a href="#">Nos Dentistes</a>
-                    <a href="#">Je suis patient</a>
-                    <a href="#">Je suis dentiste</a>
-                    <a href="#">FR</a>
-                </div>
-                <button class="menu-button">Menu</button>
-            </nav>
+        <div class="left-items">
+            <div class="logo">
+                <a href="../index.php">
+                    <img src="./assets/logo/logo.png" alt="SmileDesk-Logo">
+                </a>
+            </div>
+        </div>
+        <div class="right-items">
+            <ul id="menu-list">
+                <li><a href="../index.php">Accueil</a></li>
+                <li><a href=""><button class="button-form">Book Appointment</button></a></li>
+            </ul>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" style="margin-top: 6rem;">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-info animate-fade-in">
