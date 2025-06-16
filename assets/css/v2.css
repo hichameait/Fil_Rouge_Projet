@@ -1971,12 +1971,14 @@ main .hero {
   gap: 24px;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 #list-menu li {
   font-size: 1rem;
   color: #222;
   display: flex;
   align-items: center;
+  flex-direction: column;
 }
 #list-menu li a {
   text-decoration: none;
