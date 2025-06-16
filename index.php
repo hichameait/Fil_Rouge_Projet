@@ -367,7 +367,7 @@ $plans = fetchAll("SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY
             <div class="upline">
                 <div class="logo">
                     <a href="../index.php">
-                        <img src="../assets/logo/logo.png" alt="SmileDesk-Logo">
+                        <img src="./assets/logo/logo.png" alt="SmileDesk-Logo">
                     </a>
                 </div>
                 <div class="icons">
