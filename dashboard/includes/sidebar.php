@@ -18,8 +18,7 @@ if (!isset($_SESSION['role']) && $currentUser && isset($currentUser['role'])) {
 <aside class="hidden md:flex h-screen w-64 flex-col border-r bg-white">
     <div class="p-6 border-b">
         <div class="flex items-center">
-            <i class="fas fa-tooth text-blue-600 text-2xl mr-2"></i>
-            <h2 class="text-lg font-semibold text-gray-900">SmileDesk</h2>
+            <h2 class="text-lg font-semibold text-gray-900"><img src="../assets/logo/logo.png" alt="Logo" class="h-10 w-auto"></h2>
         </div>
     </div>
     <div class="flex-1 overflow-auto py-2">

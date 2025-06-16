@@ -8,6 +8,10 @@ if (!isset($_SESSION['is_logged']) || !$_SESSION['is_logged']) {
     exit;
 }
 
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+    header('Location: ../admin/');
+    exit();
+}
 
 // if (!isLoggedIn()) {
 //     header('Location: ../auth/login.php');
@@ -20,6 +24,7 @@ $user = getCurrentUser();
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,6 +38,7 @@ $user = getCurrentUser();
     <meta name="csrf-token" content="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
     <meta name="api-base" content="/pfa/api">
 </head>
+
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
@@ -88,4 +94,5 @@ $user = getCurrentUser();
     <script src="assets/js/charts.js"></script>
     <script src="assets/js/appointments.js"></script>
 </body>
+
 </html>

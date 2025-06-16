@@ -16,6 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (login($email, $password)) {
             // Debug: log user_status
             error_log('User status after login: ' . ($_SESSION['user_status'] ?? 'NOT SET'));
+            // Redirect admin to admin panel
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+                header('Location: ../admin/');
+                exit();
+            }
             if ($_SESSION['user_status'] === 'active') {
                 header('Location: ../dashboard/index.php');
                 exit();

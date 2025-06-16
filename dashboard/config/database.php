@@ -16,7 +16,7 @@ class Database {
     private $host = 'localhost';
     private $dbname = 'smiledesk';
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     private $pdo;
 
     public function __construct() {

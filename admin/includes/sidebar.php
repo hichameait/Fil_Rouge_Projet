@@ -1,6 +1,6 @@
 <aside class="w-64 bg-white border-r border-gray-200 fixed h-full">
     <div class="flex items-center justify-between h-16 border-b px-6">
-        <span class="text-xl font-semibold text-blue-600">SmileDesk Admin</span>
+        <span class="text-xl font-semibold text-blue-600"><img src="./logo/logo.png" alt="Logo" class="h-10 w-auto"></span>
     </div>
     <nav class="mt-6">
         <a href="./index.php" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 <?= strpos($_SERVER['PHP_SELF'], 'dashboard.php') ? 'bg-blue-50 text-blue-600' : '' ?>">

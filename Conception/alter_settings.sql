@@ -9,16 +9,10 @@ ALTER TABLE settings
 ALTER TABLE settings
 	ADD COLUMN IF NOT EXISTS automation_settings JSON DEFAULT NULL COMMENT 'Only contains user-specific automation preferences';
 
--- Remove SMTP and SMS settings from individual settings if they exist
+-- Ensure SMTP and SMS settings columns exist in settings
 ALTER TABLE settings
-	DROP COLUMN IF EXISTS smtp_settings,
-	DROP COLUMN IF EXISTS sms_provider_settings;
+	ADD COLUMN IF NOT EXISTS smtp_settings TEXT DEFAULT NULL,
+	ADD COLUMN IF NOT EXISTS sms_provider_settings JSON DEFAULT NULL;
 
--- Create global_settings table for admin-only SMTP/SMS config
-CREATE TABLE IF NOT EXISTS global_settings (
-	id INT PRIMARY KEY AUTO_INCREMENT,
-	smtp_settings JSON DEFAULT NULL,
-	sms_provider_settings JSON DEFAULT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+-- Remove global_settings table if exists (cleanup)
+DROP TABLE IF EXISTS global_settings;
