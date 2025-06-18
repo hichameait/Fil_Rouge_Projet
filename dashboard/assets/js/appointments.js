@@ -91,15 +91,15 @@ function initializeAppointmentManagement() {
         durationField.value = duration || ""
       }
 
-      // Show/hide tooth selection
-      const toothSelection = document.getElementById("tooth-selection")
-      if (toothSelection) {
-        if (toothRequired) {
-          toothSelection.classList.remove("hidden")
-        } else {
-          toothSelection.classList.add("hidden")
-        }
-      }
+      // // Show/hide tooth selection
+      // const toothSelection = document.getElementById("tooth-selection")
+      // if (toothSelection) {
+      //   if (toothRequired) {
+      //     toothSelection.classList.remove("hidden")
+      //   } else {
+      //     toothSelection.classList.add("hidden")
+      //   }
+      // }
     })
   }
 
@@ -146,7 +146,7 @@ function loadServices() {
         services.forEach((service) => {
           const option = document.createElement("option")
           option.value = service.id
-          option.textContent = `${service.name} - $${service.price}`
+          option.textContent = `${service.name}`
           option.setAttribute("data-duration", service.duration)
           select.appendChild(option)
         })

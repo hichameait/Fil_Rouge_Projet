@@ -1383,7 +1383,7 @@ function loadServices() {
         data.forEach((service) => {
           const option = document.createElement("option")
           option.value = service.id
-          option.textContent = `${service.name} - $${service.price}`
+          option.textContent = `${service.name}`
           option.setAttribute("data-duration", service.duration)
           option.setAttribute("data-tooth-required", service.requires_tooth_selection)
           select.appendChild(option)

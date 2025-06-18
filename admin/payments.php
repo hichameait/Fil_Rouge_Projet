@@ -15,7 +15,7 @@ $stmt = $pdo->query("
     SELECT 
         s.id,
         sp.name AS plan_name,
-        sp.price AS total_amount,
+        s.price AS total_amount,
         s.payment_method,
         s.start_date AS paid_date,
         u.first_name,

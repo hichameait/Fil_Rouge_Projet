@@ -177,6 +177,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="price"><?php echo number_format($plan_price, 0, '', ' '); ?> MAD</div>
                 </div>
+                <?php if (isset($_GET['plan_id']) && $_GET['plan_id'] == 1): ?>
+                <div class="mb-4">
+                    <button class="button-form button-pay">
+                    <a href="checkout.php?plan_id=2" style="text-decoration:none; color:#fff;">
+                        Choisir le plan Pro
+                    </a>
+                    </button>
+
+                </div>
+                <?php endif; ?>
+                <?php if (!isset($_GET['plan_id']) && !isset($_POST['plan_id'])): ?>
+                <div class="mb-4">
+                    <a href="../pricing.php" class="button-form bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2 inline-block text-center w-full">
+                        Choisir un autre plan
+                    </a>
+                </div>
+                <?php endif; ?>
 
                 <div class="discount-section">
                     <input type="text" placeholder="Discount code" class="inputs">

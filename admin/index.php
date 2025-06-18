@@ -18,8 +18,7 @@ $stats = [
     'active_subscriptions' => (int)$pdo->query("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'")->fetchColumn() ?: 0,
     'total_revenue' => (float)$pdo->query("
         SELECT COALESCE(SUM(price), 0) 
-        FROM subscriptions 
-        JOIN subscription_plans ON subscriptions.plan_id = subscription_plans.id
+        FROM subscriptions
     ")->fetchColumn() ?: 0.00,
 ];
 

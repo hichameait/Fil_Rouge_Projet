@@ -103,7 +103,7 @@ $plans = $pdo->query("SELECT * FROM subscription_plans ORDER BY price ASC")->fet
                     <input type="number" id="planDuration" name="duration_months" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Prix (€)</label>
+                    <label class="block text-sm font-medium text-gray-700">Prix (MAD)</label>
                     <input type="number" step="0.01" id="planPrice" name="price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
