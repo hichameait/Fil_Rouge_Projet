@@ -32,7 +32,7 @@ $services = fetchAll(
     <!-- Service Categories -->
     <div class="bg-white rounded-lg shadow-sm">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold">Service Categories</h3>
+            <h3 class="text-lg font-semibold">Catégories de services</h3>
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -45,11 +45,11 @@ $services = fetchAll(
                                     data-id="<?= $category['id'] ?>" 
                                     data-name="<?= htmlspecialchars($category['name']) ?>" 
                                     data-description="<?= htmlspecialchars($category['description']) ?>">
-                                Edit
+                                Modifier
                             </button>
                             <button class="text-red-600 hover:text-red-800 text-sm delete-category-btn" 
                                     data-id="<?= $category['id'] ?>">
-                                Delete
+                                Supprimer
                             </button>
                         </div>
                     </div>
@@ -61,16 +61,16 @@ $services = fetchAll(
     <!-- Services List -->
     <div class="bg-white rounded-lg shadow-sm">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold">All Services</h3>
+            <h3 class="text-lg font-semibold">Tous les services</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (MAD)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durée</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix (MAD)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -92,8 +92,8 @@ $services = fetchAll(
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <form method="post" action="./dashboard/api/save_service_price.php" class="inline price-form">
                                     <input type="hidden" name="base_service_id" value="<?= $service['id'] ?>">
-                                    <input type="number" step="0.01" min="0" name="price" value="<?= $service['custom_price'] !== null ? $service['custom_price'] : '' ?>" placeholder="Set price" style="width:80px;" required>
-                                    <button type="submit" class="ml-2 text-blue-600 hover:text-blue-900">Save</button>
+                                    <input type="number" step="0.01" min="0" name="price" value="<?= $service['custom_price'] !== null ? $service['custom_price'] : '' ?>" placeholder="Définir le prix" style="width:80px;" required>
+                                    <button type="submit" class="ml-2 text-blue-600 hover:text-blue-900">Enregistrer</button>
                                 </form>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -117,11 +117,11 @@ $services = fetchAll(
     <!-- Edit Category Modal (hidden by default) -->
     <div id="editCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 hidden">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
+            <h3 class="text-lg font-semibold mb-4">Modifier la catégorie</h3>
             <form id="editCategoryForm">
                 <input type="hidden" name="id" id="editCategoryId">
                 <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
                     <input type="text" name="name" id="editCategoryName" class="w-full border border-gray-300 rounded-md px-3 py-2">
                 </div>
                 <div class="mb-3">
@@ -129,8 +129,8 @@ $services = fetchAll(
                     <textarea name="description" id="editCategoryDescription" class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
                 </div>
                 <div class="flex justify-end space-x-2">
-                    <button type="button" id="cancelEditCategory" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+                    <button type="button" id="cancelEditCategory" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Annuler</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Enregistrer</button>
                 </div>
             </form>
         </div>
@@ -183,11 +183,11 @@ $services = fetchAll(
     <!-- Delete Confirmation Modal (hidden by default) -->
     <div id="deleteConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 hidden">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h3 class="text-lg font-semibold mb-4">Confirm Delete</h3>
-            <p class="mb-4">Are you sure you want to delete this item?</p>
+            <h3 class="text-lg font-semibold mb-4">Confirmer la suppression</h3>
+            <p class="mb-4">Êtes-vous sûr de vouloir supprimer cet élément ?</p>
             <div class="flex justify-end space-x-2">
-                <button type="button" id="cancelDelete" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
-                <button type="button" id="confirmDelete" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+                <button type="button" id="cancelDelete" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Annuler</button>
+                <button type="button" id="confirmDelete" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Supprimer</button>
             </div>
         </div>
     </div>
@@ -247,7 +247,7 @@ $services = fetchAll(
         if (deleteType && deleteId) {
             // You should implement AJAX or form submission here
             // Example: window.location = `delete.php?type=${deleteType}&id=${deleteId}`;
-            alert('Delete ' + deleteType + ' with ID ' + deleteId);
+            alert('Suppression de ' + deleteType + ' avec ID ' + deleteId);
             document.getElementById('deleteConfirmModal').classList.add('hidden');
         }
     };

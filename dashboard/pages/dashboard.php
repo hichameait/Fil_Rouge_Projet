@@ -63,50 +63,50 @@ $recent_activities = fetchAll(
 <div class="container p-6">
     <div class="space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 class="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         </div>
 
         <!-- Stats Cards -->
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
-                    <h2 class="text-sm font-medium text-gray-600">Total Patients</h2>
+                    <h2 class="text-sm font-medium text-gray-600">Total des patients</h2>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </div>
                 <div class="text-2xl font-bold"><?= number_format($total_patients) ?></div>
-                <p class="text-xs text-gray-500">12% increase from last month</p>
+                <p class="text-xs text-gray-500">+12% par rapport au mois dernier</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
-                    <h2 class="text-sm font-medium text-gray-600">Appointments Today</h2>
+                    <h2 class="text-sm font-medium text-gray-600">Rendez-vous aujourd'hui</h2>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <div class="text-2xl font-bold"><?= $today_appointments ?></div>
-                <p class="text-xs text-gray-500"><?= $remaining_appointments ?> remaining for today</p>
+                <p class="text-xs text-gray-500"><?= $remaining_appointments ?> restant(s) pour aujourd'hui</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
-                    <h2 class="text-sm font-medium text-gray-600">Uploaded Documents</h2>
+                    <h2 class="text-sm font-medium text-gray-600">Documents téléversés</h2>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10V6a5 5 0 0110 0v4M12 16v-4m0 0l-2 2m2-2l2 2" />
                     </svg>
                 </div>
                 <div class="text-2xl font-bold"><?= number_format($uploaded_documents) ?></div>
-                <p class="text-xs text-gray-500">Total documents uploaded</p>
+                <p class="text-xs text-gray-500">Nombre total de documents téléversés</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center pb-2">
-                    <h2 class="text-sm font-medium text-gray-600">Revenue This Month</h2>
+                    <h2 class="text-sm font-medium text-gray-600">Revenu ce mois-ci</h2>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div class="text-2xl font-bold">$<?= number_format($monthly_revenue, 2) ?></div>
-                <p class="text-xs text-gray-500">8% increase from last month</p>
+                <div class="text-2xl font-bold"><?= number_format($monthly_revenue, 2) ?> DH</div>
+                <p class="text-xs text-gray-500">+8% par rapport au mois dernier</p>
             </div>
         </div>
 
@@ -114,13 +114,13 @@ $recent_activities = fetchAll(
             <!-- Upcoming Appointments -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b">
-                    <h2 class="text-lg font-semibold">Upcoming Appointments</h2>
-                    <p class="text-sm text-gray-500">Your schedule for the next 24 hours</p>
+                    <h2 class="text-lg font-semibold">Rendez-vous à venir</h2>
+                    <p class="text-sm text-gray-500">Votre planning pour les prochaines 24 heures</p>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
                         <?php if (empty($upcoming_appointments)): ?>
-                            <p class="text-gray-500 text-center py-4">No upcoming appointments</p>
+                            <p class="text-gray-500 text-center py-4">Aucun rendez-vous à venir</p>
                         <?php else: ?>
                             <?php foreach ($upcoming_appointments as $appointment): ?>
                                 <div class="flex items-center justify-between border-b pb-4">
@@ -133,16 +133,16 @@ $recent_activities = fetchAll(
                                             <p class="text-sm text-gray-500"><?= $appointment['service_name'] ?></p>
                                             <p class="text-sm text-gray-500">
                                                 <?= date('g:i A', strtotime($appointment['appointment_time'])) ?> 
-                                                with Dr. <?= $appointment['dentist_name'] ?>
+                                                avec Dr. <?= $appointment['dentist_name'] ?>
                                             </p>
                                         </div>
                                     </div>
                                     <div class="flex space-x-2">
                                         <button class="text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md px-3 py-1 text-sm">
-                                            Reschedule
+                                            Replanifier
                                         </button>
                                         <button class="bg-blue-600 text-white rounded-md px-3 py-1 text-sm">
-                                            View
+                                            Voir
                                         </button>
                                     </div>
                                 </div>
@@ -154,13 +154,13 @@ $recent_activities = fetchAll(
             <!-- Recent Activity -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b">
-                    <h2 class="text-lg font-semibold">Recent Activity</h2>
-                    <p class="text-sm text-gray-500">Latest updates and notifications</p>
+                    <h2 class="text-lg font-semibold">Activité récente</h2>
+                    <p class="text-sm text-gray-500">Dernières mises à jour et notifications</p>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
                         <?php if (empty($recent_activities)): ?>
-                            <p class="text-gray-500 text-center py-4">No recent activity</p>
+                            <p class="text-gray-500 text-center py-4">Aucune activité récente</p>
                         <?php else: ?>
                             <?php foreach ($recent_activities as $activity): ?>
                                 <?php

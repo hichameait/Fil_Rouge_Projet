@@ -65,7 +65,7 @@ $appointment_stats = fetchAll(
                     <i class="fas fa-users text-blue-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Patients</p>
+                    <p class="text-sm font-medium text-gray-600">Total des patients</p>
                     <p class="text-2xl font-bold text-gray-900"><?= array_sum(array_column($monthly_patients, 'count')) ?></p>
                 </div>
             </div>
@@ -77,7 +77,7 @@ $appointment_stats = fetchAll(
                     <i class="fas fa-calendar-check text-green-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Completed Appointments</p>
+                    <p class="text-sm font-medium text-gray-600">Rendez-vous terminés</p>
                     <p class="text-2xl font-bold text-gray-900">
                         <?= array_sum(array_column(array_filter($appointment_stats, function($stat) { return $stat['status'] === 'completed'; }), 'count')) ?>
                     </p>
@@ -91,8 +91,8 @@ $appointment_stats = fetchAll(
                     <i class="fas fa-dollar-sign text-yellow-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p class="text-2xl font-bold text-gray-900">$<?= number_format(array_sum(array_column($monthly_revenue, 'revenue')), 2) ?></p>
+                    <p class="text-sm font-medium text-gray-600">Revenu total</p>
+                    <p class="text-2xl font-bold text-gray-900"><?= number_format(array_sum(array_column($monthly_revenue, 'revenue')), 2) ?> DH</p>
                 </div>
             </div>
         </div>
@@ -103,8 +103,8 @@ $appointment_stats = fetchAll(
                     <i class="fas fa-chart-line text-red-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Growth Rate</p>
-                    <p class="text-2xl font-bold text-gray-900">+12.5%</p>
+                    <p class="text-sm font-medium text-gray-600">Taux de croissance</p>
+                    <p class="text-2xl font-bold text-gray-900">+12,5%</p>
                 </div>
             </div>
         </div>
@@ -114,13 +114,13 @@ $appointment_stats = fetchAll(
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Patient Registration Chart -->
         <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Patient Registrations (2024)</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Inscriptions patients (2024)</h3>
             <canvas id="patientsChart" width="400" height="200"></canvas>
         </div>
 
         <!-- Revenue Chart -->
         <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue (2024)</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenu mensuel (2024)</h3>
             <canvas id="revenueChart" width="400" height="200"></canvas>
         </div>
     </div>
@@ -130,7 +130,7 @@ $appointment_stats = fetchAll(
         <!-- Top Services -->
         <div class="bg-white rounded-lg shadow-sm">
             <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Top Services</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Meilleurs services</h3>
             </div>
             <div class="p-6">
                 <div class="space-y-4">
@@ -139,15 +139,15 @@ $appointment_stats = fetchAll(
                             <div>
                                 <p class="font-medium text-gray-900"><?= htmlspecialchars($service['name']) ?></p>
                                 <p class="text-sm text-gray-600">
-                                    <?= $service['appointment_count'] ?> appointment<?= $service['appointment_count'] !== 1 ? 's' : '' ?>
+                                    <?= $service['appointment_count'] ?> rendez-vous
                                     <span class="text-gray-500">
-                                        (<?= number_format((float)$service['service_price'], 2) ?> MAD per service)
+                                        (<?= number_format((float)$service['service_price'], 2) ?> DH par service)
                                     </span>
                                 </p>
                             </div>
                             <div class="text-right">
                                 <p class="font-medium text-gray-900">
-                                    <?= number_format((float)$service['total_revenue'], 2) ?> MAD
+                                    <?= number_format((float)$service['total_revenue'], 2) ?> DH
                                 </p>
                             </div>
                         </div>
@@ -159,7 +159,7 @@ $appointment_stats = fetchAll(
         <!-- Appointment Status Distribution -->
         <div class="bg-white rounded-lg shadow-sm">
             <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Appointment Status</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Statut des rendez-vous</h3>
             </div>
             <div class="p-6">
                 <canvas id="appointmentStatusChart" width="400" height="200"></canvas>
@@ -182,11 +182,11 @@ const patientsChart = new Chart(document.getElementById('patientsChart'), {
     type: 'bar',
     data: {
         labels: monthlyPatientsData.map(d => {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const months = ['Janv', 'Fév', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
             return months[d.month - 1];
         }),
         datasets: [{
-            label: 'New Patients',
+            label: 'Nouveaux patients',
             data: monthlyPatientsData.map(d => d.count),
             backgroundColor: 'rgba(59, 130, 246, 0.5)',
             borderColor: 'rgb(59, 130, 246)',
@@ -219,11 +219,11 @@ const revenueChart = new Chart(document.getElementById('revenueChart'), {
     type: 'line',
     data: {
         labels: monthlyRevenueData.map(d => {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const months = ['Janv', 'Fév', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
             return months[d.month - 1];
         }),
         datasets: [{
-            label: 'Revenue (MAD)',
+            label: 'Revenu (MAD)',
             data: monthlyRevenueData.map(d => d.revenue),
             borderColor: 'rgb(34, 197, 94)',
             backgroundColor: 'rgba(34, 197, 94, 0.5)',
@@ -255,7 +255,17 @@ const revenueChart = new Chart(document.getElementById('revenueChart'), {
 const appointmentChart = new Chart(document.getElementById('appointmentStatusChart'), {
     type: 'doughnut',
     data: {
-        labels: appointmentStatsData.map(d => d.status.charAt(0).toUpperCase() + d.status.slice(1)),
+        labels: appointmentStatsData.map(d => {
+            // Translate status to French
+            const map = {
+                completed: 'Terminé',
+                scheduled: 'Planifié',
+                in_progress: 'En cours',
+                cancelled: 'Annulé',
+                no_show: 'Absent'
+            };
+            return map[d.status] || d.status.charAt(0).toUpperCase() + d.status.slice(1);
+        }),
         datasets: [{
             data: appointmentStatsData.map(d => d.count),
             backgroundColor: [

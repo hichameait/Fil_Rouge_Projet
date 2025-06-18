@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div id="payment-element" class="form-group"></div>
                 <div id="payment-error" style="color:red;margin-top:10px;"></div>
-                <button type="submit" class="button-form button-pay">Pay now</button>
+                <button type="submit" class="button-form button-pay">Payez</button>
             </form>
         </section>
 
@@ -180,9 +180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php if (isset($_GET['plan_id']) && $_GET['plan_id'] == 1): ?>
                 <div class="mb-4">
                     <button class="button-form button-pay">
-                    <a href="checkout.php?plan_id=2" style="text-decoration:none; color:#fff;">
-                        Choisir le plan Pro
-                    </a>
+                        <a href="checkout.php?plan_id=2" style="text-decoration:none; color:#fff;">
+                            Choisir le plan Pro
+                        </a>
                     </button>
 
                 </div>
@@ -343,7 +343,7 @@ document.getElementById('checkout-form').addEventListener('submit', async (e) =>
         if (error) {
             document.getElementById('payment-error').textContent = error.message;
             submitButton.disabled = false;
-            submitButton.textContent = 'Pay now';
+            submitButton.textContent = 'Payez';
         } else if (paymentIntent && paymentIntent.status === 'succeeded') {
             // Save subscription in DB after payment success
             await fetch('payment-intent.php', {

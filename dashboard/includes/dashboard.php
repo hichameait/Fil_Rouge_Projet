@@ -50,41 +50,41 @@ $recent_activities = $stmt->fetchAll();
     <!-- Total Patients -->
     <div class="bg-white p-6 rounded-lg shadow-sm">
         <div class="flex flex-row items-center justify-between pb-2">
-            <h3 class="text-sm font-medium text-gray-600">Total Patients</h3>
+            <h3 class="text-sm font-medium text-gray-600">Total des patients</h3>
             <i class="fas fa-users text-gray-400"></i>
         </div>
         <div class="text-2xl font-bold"><?php echo number_format($total_patients); ?></div>
-        <p class="text-xs text-gray-500">12% increase from last month</p>
+        <p class="text-xs text-gray-500">+12% par rapport au mois dernier</p>
     </div>
 
     <!-- Appointments Today -->
     <div class="bg-white p-6 rounded-lg shadow-sm">
         <div class="flex flex-row items-center justify-between pb-2">
-            <h3 class="text-sm font-medium text-gray-600">Appointments Today</h3>
+            <h3 class="text-sm font-medium text-gray-600">Rendez-vous aujourd'hui</h3>
             <i class="fas fa-calendar text-gray-400"></i>
         </div>
         <div class="text-2xl font-bold"><?php echo $today_appointments; ?></div>
-        <p class="text-xs text-gray-500"><?php echo $remaining_appointments; ?> remaining for today</p>
+        <p class="text-xs text-gray-500"><?php echo $remaining_appointments; ?> restant(s) pour aujourd'hui</p>
     </div>
 
     <!-- Average Wait Time -->
     <div class="bg-white p-6 rounded-lg shadow-sm">
         <div class="flex flex-row items-center justify-between pb-2">
-            <h3 class="text-sm font-medium text-gray-600">Average Wait Time</h3>
+            <h3 class="text-sm font-medium text-gray-600">Temps d'attente moyen</h3>
             <i class="fas fa-clock text-gray-400"></i>
         </div>
         <div class="text-2xl font-bold"><?php echo $avg_wait_time; ?> min</div>
-        <p class="text-xs text-gray-500">2 min less than last week</p>
+        <p class="text-xs text-gray-500">2 min de moins que la semaine dernière</p>
     </div>
 
     <!-- Revenue This Month -->
     <div class="bg-white p-6 rounded-lg shadow-sm">
         <div class="flex flex-row items-center justify-between pb-2">
-            <h3 class="text-sm font-medium text-gray-600">Revenue This Month</h3>
+            <h3 class="text-sm font-medium text-gray-600">Revenu ce mois-ci</h3>
             <i class="fas fa-dollar-sign text-gray-400"></i>
         </div>
-        <div class="text-2xl font-bold">$<?php echo number_format($monthly_revenue); ?></div>
-        <p class="text-xs text-gray-500">8% increase from last month</p>
+        <div class="text-2xl font-bold"><?php echo number_format($monthly_revenue); ?> DH</div>
+        <p class="text-xs text-gray-500">+8% par rapport au mois dernier</p>
     </div>
 </div>
 
@@ -93,12 +93,12 @@ $recent_activities = $stmt->fetchAll();
     <!-- Upcoming Appointments -->
     <div class="bg-white rounded-lg shadow-sm">
         <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Upcoming Appointments</h2>
-            <p class="text-sm text-gray-500">Your schedule for the next 24 hours</p>
+            <h2 class="text-lg font-semibold">Rendez-vous à venir</h2>
+            <p class="text-sm text-gray-500">Votre planning pour les prochaines 24 heures</p>
         </div>
         <div class="p-6 space-y-4">
             <?php if (empty($upcoming_appointments)): ?>
-                <p class="text-gray-500 text-center py-4">No upcoming appointments</p>
+                <p class="text-gray-500 text-center py-4">Aucun rendez-vous à venir</p>
             <?php else: ?>
                 <?php foreach ($upcoming_appointments as $appointment): ?>
                     <?php 
@@ -121,12 +121,12 @@ $recent_activities = $stmt->fetchAll();
                             <button class="reschedule-btn text-sm px-3 py-1 border rounded-md hover:bg-gray-50 flex items-center" 
                                     data-id="<?php echo $appointment['id']; ?>">
                                 <i class="fas fa-sync-alt mr-1 text-xs"></i>
-                                Reschedule
+                                Replanifier
                             </button>
                             <button class="view-btn bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded-md flex items-center"
                                     data-id="<?php echo $appointment['id']; ?>">
                                 <i class="fas fa-eye mr-1 text-xs"></i>
-                                View
+                                Voir
                             </button>
                         </div>
                     </div>
@@ -138,12 +138,12 @@ $recent_activities = $stmt->fetchAll();
     <!-- Recent Activity -->
     <div class="bg-white rounded-lg shadow-sm">
         <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Recent Activity</h2>
-            <p class="text-sm text-gray-500">Latest updates and notifications</p>
+            <h2 class="text-lg font-semibold">Activité récente</h2>
+            <p class="text-sm text-gray-500">Dernières mises à jour et notifications</p>
         </div>
         <div class="p-6 space-y-4">
             <?php if (empty($recent_activities)): ?>
-                <p class="text-gray-500 text-center py-4">No recent activities</p>
+                <p class="text-gray-500 text-center py-4">Aucune activité récente</p>
             <?php else: ?>
                 <?php foreach ($recent_activities as $activity): ?>
                     <?php 

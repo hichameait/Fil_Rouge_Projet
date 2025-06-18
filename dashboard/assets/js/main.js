@@ -120,9 +120,9 @@ function loadInitialData() {
         fetch('api/services.php').then(res => res.json()),
         fetch('api/dentists.php').then(res => res.json())
     ]).then(([patients, services, dentists]) => {
-        populateSelect('patient-select', patients, 'Select Patient');
-        populateSelect('service-select', services, 'Select Service');
-        populateSelect('dentist-select', dentists, 'Select Dentist');
+        populateSelect('patient-select', patients, 'Sélectionner un patient');
+        populateSelect('service-select', services, 'Sélectionner un service');
+        populateSelect('dentist-select', dentists, 'Sélectionner un dentiste');
     });
 }
 
@@ -501,8 +501,8 @@ function resetPatientForm() {
   const form = document.getElementById("patientForm")
   form.reset()
   document.getElementById("patient-id").value = ""
-  document.getElementById("patientModalTitle").textContent = "Add New Patient"
-  document.getElementById("patientSubmitText").textContent = "Add Patient"
+  document.getElementById("patientModalTitle").textContent = "Ajouter un nouveau patient"
+  document.getElementById("patientSubmitText").textContent = "Ajouter le patient"
 }
 
 function viewPatient(patientId) {
@@ -514,7 +514,7 @@ function viewPatient(patientId) {
     })
     .catch((error) => {
       console.error("Error loading patient:", error)
-      showToast("Error loading patient data", "error")
+      showToast("Erreur lors du chargement des données du patient", "error")
     })
 }
 
@@ -523,13 +523,13 @@ function editPatient(patientId) {
     .then((response) => response.json())
     .then((patient) => {
       populatePatientForm(patient)
-      document.getElementById("patientModalTitle").textContent = "Edit Patient"
-      document.getElementById("patientSubmitText").textContent = "Update Patient"
+      document.getElementById("patientModalTitle").textContent = "Modifier le patient"
+      document.getElementById("patientSubmitText").textContent = "Mettre à jour le patient"
       openModal("patientModal")
     })
     .catch((error) => {
       console.error("Error loading patient:", error)
-      showToast("Error loading patient data", "error")
+      showToast("Erreur lors du chargement des données du patient", "error")
     })
 }
 
@@ -550,22 +550,22 @@ function displayPatientDetails(patient) {
   content.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <h4 class="text-lg font-semibold mb-4">Personal Information</h4>
+        <h4 class="text-lg font-semibold mb-4">Informations personnelles</h4>
         <div class="space-y-3">
-          <div><strong>Name:</strong> ${patient.first_name} ${patient.last_name}</div>
-          <div><strong>Patient ID:</strong> ${patient.patient_number}</div>
-          <div><strong>Email:</strong> ${patient.email || "N/A"}</div>
-          <div><strong>Phone:</strong> ${patient.phone}</div>
-          <div><strong>Date of Birth:</strong> ${patient.date_of_birth || "N/A"}</div>
-          <div><strong>Gender:</strong> ${patient.gender || "N/A"}</div>
-          <div><strong>Address:</strong> ${patient.address || "N/A"}</div>
+          <div><strong>Nom&nbsp;:</strong> ${patient.first_name} ${patient.last_name}</div>
+          <div><strong>ID Patient&nbsp;:</strong> ${patient.patient_number}</div>
+          <div><strong>Email&nbsp;:</strong> ${patient.email || "N/A"}</div>
+          <div><strong>Téléphone&nbsp;:</strong> ${patient.phone}</div>
+          <div><strong>Date de naissance&nbsp;:</strong> ${patient.date_of_birth || "N/A"}</div>
+          <div><strong>Sexe&nbsp;:</strong> ${patient.gender || "N/A"}</div>
+          <div><strong>Adresse&nbsp;:</strong> ${patient.address || "N/A"}</div>
         </div>
       </div>
       <div>
-        <h4 class="text-lg font-semibold mb-4">Medical Information</h4>
+        <h4 class="text-lg font-semibold mb-4">Informations médicales</h4>
         <div class="space-y-3">
-          <div><strong>Medical History:</strong><br>${patient.medical_history || "No medical history recorded"}</div>
-          <div><strong>Status:</strong> <span class="px-2 py-1 rounded text-sm ${patient.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}">${patient.status}</span></div>
+          <div><strong>Antécédents médicaux&nbsp;:</strong><br>${patient.medical_history || "Aucun antécédent médical enregistré"}</div>
+          <div><strong>Statut&nbsp;:</strong> <span class="px-2 py-1 rounded text-sm ${patient.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}">${patient.status === "active" ? "Actif" : "Inactif"}</span></div>
         </div>
       </div>
     </div>
@@ -585,15 +585,15 @@ function scheduleAppointmentForPatient(patientId) {
 }
 
 function deletePatient(patientId) {
-  const Swal = window.Swal // Declare the variable before using it
+  const Swal = window.Swal
   Swal.fire({
-    title: "Are you sure?",
-    text: "This will permanently delete the patient and all associated data!",
+    title: "Êtes-vous sûr ?",
+    text: "Cela supprimera définitivement le patient et toutes les données associées !",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
+    confirmButtonText: "Oui, supprimer !",
   }).then((result) => {
     if (result.isConfirmed) {
       fetch("api/patients.php", {
@@ -606,13 +606,13 @@ function deletePatient(patientId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Deleted!", "Patient has been deleted.", "success").then(() => location.reload())
+            Swal.fire("Supprimé !", "Le patient a été supprimé.", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to delete patient", "error")
+          Swal.fire("Erreur !", "Échec de la suppression du patient", "error")
         })
     }
   })
@@ -644,16 +644,16 @@ function handlePatientFormSubmit(e) {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          showToast(isUpdate ? "Patient updated successfully!" : "Patient added successfully!", "success")
+          showToast(isUpdate ? "Patient mis à jour avec succès !" : "Patient ajouté avec succès !", "success")
           closeModal("patientModal")
           setTimeout(() => location.reload(), 1000)
         } else {
-          showToast("Error: " + data.message, "error")
+          showToast("Erreur : " + data.message, "error")
         }
       })
       .catch((error) => {
         console.error("Error:", error)
-        showToast("An error occurred. Please try again.", "error")
+        showToast("Une erreur est survenue. Veuillez réessayer.", "error")
       })
   } else {
     fetch(url, {
@@ -663,16 +663,16 @@ function handlePatientFormSubmit(e) {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          showToast(isUpdate ? "Patient updated successfully!" : "Patient added successfully!", "success")
+          showToast(isUpdate ? "Patient mis à jour avec succès !" : "Patient ajouté avec succès !", "success")
           closeModal("patientModal")
           setTimeout(() => location.reload(), 1000)
         } else {
-          showToast("Error: " + data.message, "error")
+          showToast("Erreur : " + data.message, "error")
         }
       })
       .catch((error) => {
         console.error("Error:", error)
-        showToast("An error occurred. Please try again.", "error")
+        showToast("Une erreur est survenue. Veuillez réessayer.", "error")
       })
   }
 }
@@ -682,8 +682,8 @@ function resetInvoiceForm() {
   const form = document.getElementById("invoiceForm")
   form.reset()
   document.getElementById("invoice-id").value = ""
-  document.getElementById("invoiceModalTitle").textContent = "Create New Invoice"
-  document.getElementById("invoiceSubmitText").textContent = "Create Invoice"
+  document.getElementById("invoiceModalTitle").textContent = "Créer une nouvelle facture"
+  document.getElementById("invoiceSubmitText").textContent = "Créer une facture"
   document.getElementById("invoiceItemsTable").innerHTML = ""
   calculateInvoiceTotal()
 }
@@ -706,7 +706,7 @@ function loadPatientsForInvoice() {
     .then((response) => response.json())
     .then((patients) => {
       const select = document.getElementById("invoice-patient")
-      select.innerHTML = '<option value="">Select a patient</option>'
+      select.innerHTML = '<option value="">Sélectionner un patient</option>'
       patients.forEach((patient) => {
         const option = document.createElement("option")
         option.value = patient.id
@@ -725,7 +725,7 @@ function addInvoiceItem() {
   row.innerHTML = `
     <td class="px-4 py-2 border-b">
       <select name="items[${rowCount}][service_id]" class="w-full border border-gray-300 rounded px-2 py-1 text-sm service-select">
-        <option value="">Select service</option>
+        <option value="">Sélectionner un service</option>
       </select>
     </td>
     <td class="px-4 py-2 border-b">
@@ -783,7 +783,7 @@ function loadServicesForInvoiceItem(selectElement) {
   fetch("api/services.php")
     .then((response) => response.json())
     .then((services) => {
-      selectElement.innerHTML = '<option value="">Select service</option>'
+      selectElement.innerHTML = '<option value="">Sélectionner un service</option>'
       services.forEach((service) => {
         const option = document.createElement("option")
         option.value = service.id
@@ -844,26 +844,26 @@ function displayInvoiceDetails(invoice) {
     <div class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 class="text-lg font-semibold mb-4">Invoice Information</h4>
+          <h4 class="text-lg font-semibold mb-4">Informations de la facture</h4>
           <div class="space-y-2">
-            <div><strong>Invoice Number:</strong> ${invoice.invoice_number}</div>
-            <div><strong>Patient:</strong> ${invoice.patient_name}</div>
-            <div><strong>Date:</strong> ${new Date(invoice.created_at).toLocaleDateString()}</div>
-            <div><strong>Due Date:</strong> ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "N/A"}</div>
-            <div><strong>Status:</strong> <span class="px-2 py-1 rounded text-sm">${invoice.status}</span></div>
+            <div><strong>Numéro de facture :</strong> ${invoice.invoice_number}</div>
+            <div><strong>Patient :</strong> ${invoice.patient_name}</div>
+            <div><strong>Date :</strong> ${new Date(invoice.created_at).toLocaleDateString()}</div>
+            <div><strong>Date d'échéance :</strong> ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "N/A"}</div>
+            <div><strong>Statut :</strong> <span class="px-2 py-1 rounded text-sm">${invoice.status}</span></div>
           </div>
         </div>
         <div>
-          <h4 class="text-lg font-semibold mb-4">Payment Information</h4>
+          <h4 class="text-lg font-semibold mb-4">Informations de paiement</h4>
           <div class="space-y-2">
-            <div><strong>Subtotal:</strong> $${Number.parseFloat(invoice.subtotal).toFixed(2)}</div>
-            <div><strong>Tax:</strong> $${Number.parseFloat(invoice.tax_amount).toFixed(2)}</div>
-            <div><strong>Discount:</strong> $${Number.parseFloat(invoice.discount_amount).toFixed(2)}</div>
-            <div class="text-lg"><strong>Total:</strong> $${Number.parseFloat(invoice.total_amount).toFixed(2)}</div>
+            <div><strong>Sous-total :</strong> ${Number.parseFloat(invoice.subtotal).toFixed(2)} DH</div>
+            <div><strong>Taxe :</strong> ${Number.parseFloat(invoice.tax_amount).toFixed(2)} DH</div>
+            <div><strong>Remise :</strong> ${Number.parseFloat(invoice.discount_amount).toFixed(2)} DH</div>
+            <div class="text-lg"><strong>Total :</strong> ${Number.parseFloat(invoice.total_amount).toFixed(2)} DH</div>
           </div>
         </div>
       </div>
-      ${invoice.notes ? `<div><strong>Notes:</strong><br>${invoice.notes}</div>` : ""}
+      ${invoice.notes ? `<div><strong>Notes :</strong><br>${invoice.notes}</div>` : ""}
     </div>
   `
 }
@@ -878,13 +878,13 @@ function downloadInvoice(invoiceId) {
 }
 
 function markInvoicePaid(invoiceId) {
-  const Swal = window.Swal // Declare the variable before using it
+  const Swal = window.Swal
   Swal.fire({
-    title: "Mark as Paid?",
-    text: "This will mark the invoice as paid.",
+    title: "Marquer comme payée ?",
+    text: "Cela va marquer la facture comme payée.",
     icon: "question",
     showCancelButton: true,
-    confirmButtonText: "Yes, mark as paid",
+    confirmButtonText: "Oui, marquer comme payée",
   }).then((result) => {
     if (result.isConfirmed) {
       // Send reschedule request
@@ -902,13 +902,13 @@ function markInvoicePaid(invoiceId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Success!", "Invoice marked as paid successfully", "success").then(() => location.reload())
+            Swal.fire("Succès !", "Facture marquée comme payée avec succès", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to mark invoice as paid", "error")
+          Swal.fire("Erreur !", "Échec lors du marquage de la facture comme payée", "error")
         })
     }
   })
@@ -919,15 +919,15 @@ function sendInvoice(invoiceId) {
 }
 
 function deleteInvoice(invoiceId) {
-  const Swal = window.Swal // Declare the variable before using it
+  const Swal = window.Swal
   Swal.fire({
-    title: "Are you sure?",
-    text: "This will permanently delete the invoice!",
+    title: "Êtes-vous sûr ?",
+    text: "Cela supprimera définitivement la facture !",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
+    confirmButtonText: "Oui, supprimer !",
   }).then((result) => {
     if (result.isConfirmed) {
       fetch("api/invoices.php", {
@@ -940,13 +940,13 @@ function deleteInvoice(invoiceId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Deleted!", "Invoice has been deleted.", "success").then(() => location.reload())
+            Swal.fire("Supprimé !", "La facture a été supprimée.", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to delete invoice", "error")
+          Swal.fire("Erreur !", "Échec de la suppression de la facture", "error")
         })
     }
   })
@@ -986,8 +986,8 @@ function resetDocumentForm() {
   const form = document.getElementById("documentForm")
   form.reset()
   document.getElementById("document-id").value = ""
-  document.getElementById("documentModalTitle").textContent = "Upload Document"
-  document.getElementById("documentSubmitText").textContent = "Upload Document"
+  document.getElementById("documentModalTitle").textContent = "Télécharger un document"
+  document.getElementById("documentSubmitText").textContent = "Télécharger le document"
 
   // Reset file upload area
   const fileDropZone = document.getElementById("file-drop-zone")
@@ -1003,7 +1003,7 @@ function loadPatientsForDocument() {
     .then((response) => response.json())
     .then((patients) => {
       const select = document.getElementById("document-patient")
-      select.innerHTML = '<option value="">Select a patient (optional)</option>'
+      select.innerHTML = '<option value="">Sélectionner un patient (optionnel)</option>'
       patients.forEach((patient) => {
         const option = document.createElement("option")
         option.value = patient.id
@@ -1052,22 +1052,22 @@ function displayDocumentDetails(document) {
     <div class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 class="text-lg font-semibold mb-4">Document Information</h4>
+          <h4 class="text-lg font-semibold mb-4">Informations du document</h4>
           <div class="space-y-2">
-            <div><strong>Title:</strong> ${document.title}</div>
-            <div><strong>Type:</strong> ${document.type.replace("_", " ")}</div>
-            <div><strong>Patient:</strong> ${document.patient_name || "N/A"}</div>
-            <div><strong>Uploaded:</strong> ${new Date(document.created_at).toLocaleDateString("en-US", {
+            <div><strong>Titre :</strong> ${document.title}</div>
+            <div><strong>Type :</strong> ${document.type.replace("_", " ")}</div>
+            <div><strong>Patient :</strong> ${document.patient_name || "N/A"}</div>
+            <div><strong>Ajouté :</strong> ${new Date(document.created_at).toLocaleDateString("fr-FR", {
               year: "numeric",
               month: "short",
               day: "numeric",
             })}</div>
-            <div><strong>File Size:</strong> ${formatFileSize(document.file_size)}</div>
+            <div><strong>Taille du fichier :</strong> ${formatFileSize(document.file_size)}</div>
           </div>
         </div>
         <div>
           <h4 class="text-lg font-semibold mb-4">Description</h4>
-          <p>${document.description || "No description provided"}</p>
+          <p>${document.description || "Aucune description fournie"}</p>
         </div>
       </div>
       ${
@@ -1075,7 +1075,7 @@ function displayDocumentDetails(document) {
           ? `
         <div class="text-center">
           <button onclick="downloadDocument(${document.id})" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            <i class="fas fa-download mr-2"></i>Download File
+            <i class="fas fa-download mr-2"></i>Télécharger le fichier
           </button>
         </div>
       `
@@ -1094,15 +1094,15 @@ function editDocument(documentId) {
 }
 
 function deleteDocument(documentId) {
-  const Swal = window.Swal // Declare the variable before using it
+  const Swal = window.Swal
   Swal.fire({
-    title: "Are you sure?",
-    text: "This will permanently delete the document!",
+    title: "Êtes-vous sûr ?",
+    text: "Cela supprimera définitivement le document !",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
+    confirmButtonText: "Oui, supprimer !",
   }).then((result) => {
     if (result.isConfirmed) {
       fetch("api/documents.php", {
@@ -1115,13 +1115,13 @@ function deleteDocument(documentId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Deleted!", "Document has been deleted.", "success").then(() => location.reload())
+            Swal.fire("Supprimé !", "Le document a été supprimé.", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to delete document", "error")
+          Swal.fire("Erreur !", "Échec de la suppression du document", "error")
         })
     }
   })
@@ -1143,16 +1143,16 @@ function handleDocumentFormSubmit(e) {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        showToast(isUpdate ? "Document updated successfully!" : "Document uploaded successfully!", "success")
+        showToast(isUpdate ? "Document modifié avec succès !" : "Document ajouté avec succès !", "success")
         closeModal("documentModal")
         setTimeout(() => location.reload(), 1000)
       } else {
-        showToast("Error: " + data.message, "error")
+        showToast("Erreur : " + data.message, "error")
       }
     })
     .catch((error) => {
       console.error("Error:", error)
-      showToast("An error occurred. Please try again.", "error")
+      showToast("Une erreur est survenue. Veuillez réessayer.", "error")
     })
 }
 
@@ -1195,7 +1195,7 @@ function initializeToothChart() {
 
   function updateSelectedTeethDisplay() {
     if (selectedTeethSpan) {
-      selectedTeethSpan.textContent = selectedTeeth.length > 0 ? selectedTeeth.join(", ") : "None"
+      selectedTeethSpan.textContent = selectedTeeth.length > 0 ? selectedTeeth.join(", ") : "Aucun"
     }
   }
 
@@ -1267,30 +1267,30 @@ function initializeAppointments() {
 }
 
 function rescheduleAppointment(appointmentId) {
-  const Swal = window.Swal // Declare the variable before using it
+  const Swal = window.Swal
   Swal.fire({
-    title: "Reschedule Appointment",
+    title: "Replanifier le rendez-vous",
     html: `
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">New Date</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nouvelle date</label>
           <input type="date" id="reschedule-date" class="w-full border border-gray-300 rounded-md px-3 py-2">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">New Time</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nouvelle heure</label>
           <input type="time" id="reschedule-time" class="w-full border border-gray-300 rounded-md px-3 py-2">
         </div>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonText: "Reschedule",
-    cancelButtonText: "Cancel",
+    confirmButtonText: "Replanifier",
+    cancelButtonText: "Annuler",
     preConfirm: () => {
       const date = document.getElementById("reschedule-date").value
       const time = document.getElementById("reschedule-time").value
 
       if (!date || !time) {
-        Swal.showValidationMessage("Please select both date and time")
+        Swal.showValidationMessage("Veuillez sélectionner la date et l'heure")
         return false
       }
 
@@ -1313,13 +1313,13 @@ function rescheduleAppointment(appointmentId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Success!", "Appointment rescheduled successfully", "success").then(() => location.reload())
+            Swal.fire("Succès !", "Rendez-vous replanifié avec succès", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to reschedule appointment", "error")
+          Swal.fire("Erreur !", "Échec de la replanification du rendez-vous", "error")
         })
     }
   })
@@ -1342,16 +1342,16 @@ function handleAppointmentFormSubmit(e) {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        showToast("Appointment scheduled successfully!", "success")
+        showToast("Rendez-vous programmé avec succès !", "success")
         closeModal("appointmentModal")
         setTimeout(() => location.reload(), 1000)
       } else {
-        showToast("Error: " + data.message, "error")
+        showToast("Erreur : " + data.message, "error")
       }
     })
     .catch((error) => {
       console.error("Error:", error)
-      showToast("An error occurred. Please try again.", "error")
+      showToast("Une erreur est survenue. Veuillez réessayer.", "error")
     })
 }
 
@@ -1361,7 +1361,7 @@ function loadPatients() {
     .then((data) => {
       const select = document.getElementById("patient-select")
       if (select) {
-        select.innerHTML = '<option value="">Select a patient</option>'
+        select.innerHTML = '<option value="">Sélectionner un patient</option>'
         data.forEach((patient) => {
           const option = document.createElement("option")
           option.value = patient.id
@@ -1379,7 +1379,7 @@ function loadServices() {
     .then((data) => {
       const select = document.getElementById("service-select")
       if (select) {
-        select.innerHTML = '<option value="">Select a service</option>'
+        select.innerHTML = '<option value="">Sélectionner un service</option>'
         data.forEach((service) => {
           const option = document.createElement("option")
           option.value = service.id
@@ -1399,7 +1399,7 @@ function loadDentists() {
     .then((data) => {
       const select = document.getElementById("dentist-select")
       if (select) {
-        select.innerHTML = '<option value="">Select a dentist</option>'
+        select.innerHTML = '<option value="">Sélectionner un dentiste</option>'
         data.forEach((dentist) => {
           const option = document.createElement("option")
           option.value = dentist.id
@@ -1409,26 +1409,6 @@ function loadDentists() {
       }
     })
     .catch((error) => console.error("Error loading dentists:", error))
-}
-
-function initializeNotifications() {
-  // Check for new notifications every 30 seconds
-  setInterval(checkNotifications, 30000)
-}
-
-function checkNotifications() {
-  fetch("api/notifications.php")
-    .then((response) => response.json())
-    .then((data) => {
-      const notificationBadge = document.querySelector(".notification-badge")
-      if (notificationBadge && data.unread_count > 0) {
-        notificationBadge.textContent = data.unread_count
-        notificationBadge.classList.remove("hidden")
-      } else if (notificationBadge) {
-        notificationBadge.classList.add("hidden")
-      }
-    })
-    .catch((error) => console.error("Error checking notifications:", error))
 }
 
 function openModal(modalId) {

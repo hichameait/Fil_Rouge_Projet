@@ -62,7 +62,7 @@ function editPatient(patientId) {
     })
     .catch((error) => {
       console.error("Error loading patient:", error)
-      showToast("Error loading patient data", "error")
+      showToast("Erreur lors du chargement des données du patient", "error")
     })
 }
 
@@ -101,13 +101,13 @@ function scheduleAppointmentForPatient(patientId) {
 
 function deletePatient(patientId) {
   Swal.fire({
-    title: "Are you sure?",
-    text: "This will permanently delete the patient and all associated data!",
+    title: "Êtes-vous sûr ?",
+    text: "Cela supprimera définitivement le patient et toutes les données associées !",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
+    confirmButtonText: "Oui, supprimer !",
   }).then((result) => {
     if (result.isConfirmed) {
       fetch("api/patients.php", {
@@ -120,13 +120,13 @@ function deletePatient(patientId) {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            Swal.fire("Deleted!", "Patient has been deleted.", "success").then(() => location.reload())
+            Swal.fire("Supprimé !", "Le patient a été supprimé.", "success").then(() => location.reload())
           } else {
-            Swal.fire("Error!", data.message, "error")
+            Swal.fire("Erreur !", data.message, "error")
           }
         })
         .catch((error) => {
-          Swal.fire("Error!", "Failed to delete patient", "error")
+          Swal.fire("Erreur !", "Échec de la suppression du patient", "error")
         })
     }
   })
@@ -148,16 +148,16 @@ function handlePatientFormSubmit(e) {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        showToast(isUpdate ? "Patient updated successfully!" : "Patient added successfully!", "success")
+        showToast(isUpdate ? "Patient modifié avec succès !" : "Patient ajouté avec succès !", "success")
         closeModal("patientModal")
         setTimeout(() => location.reload(), 1000)
       } else {
-        showToast("Error: " + data.message, "error")
+        showToast("Erreur : " + data.message, "error")
       }
     })
     .catch((error) => {
       console.error("Error:", error)
-      showToast("An error occurred. Please try again.", "error")
+      showToast("Une erreur est survenue. Veuillez réessayer.", "error")
     })
 }
 
