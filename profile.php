@@ -2,8 +2,13 @@
 require_once './dashboard/config/database.php';
 
 // Get dentist id from URL
-$dentist_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+// $dentist_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+if (isset($_GET['id'])) {
+    $dentist_id = (int) $_GET['id'];
+} elseif (isset($_GET['username'])) {
+    $username = $_GET['username'];
+}
 // Fetch dentist data
 $stmt = $pdo->prepare("SELECT u.*, s.* FROM users u LEFT JOIN settings s ON u.id = s.user_id WHERE u.id = ? AND u.role = 'dentist'");
 $stmt->execute([$dentist_id]);
@@ -81,33 +86,32 @@ $profile_img = !empty($dentist['clinic_logo_url']) ? $dentist['clinic_logo_url']
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/profile.css">
+    <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body>
     <!-- Header -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="/" class="logo">SmileDesk</a>
-                <div class="nav-links">
-                    <a href="#">Nos Dentistes</a>
-                    <a href="#">Je suis patient</a>
-                    <a href="#">Je suis dentiste</a>
-                    <a href="#">FR</a>
-                </div>
-                <button class="menu-button">Menu</button>
-            </nav>
+        <div class="left-items">
+            <div class="logo">
+                <a href="../index.php">
+                    <img src="./assets/logo/logo.png" alt="SmileDesk-Logo">
+                </a>
+            </div>
+        </div>
+        <div class="right-items">
+            <ul id="menu-list">
+                <li><a href="../index.php">Accueil</a></li>
+                <li><a href=""><button class="button-form">Book Appointment</button></a></li>
+            </ul>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" style="margin-top: 6rem;">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-info animate-fade-in">
                     <h1><?= htmlspecialchars($dentist['first_name'] . ' ' . $dentist['last_name']) ?></h1>
-                    <div>
-                        <span class="badge"><?= htmlspecialchars($dentist['specialization'] ?: 'Chirurgien-dentiste') ?></span>
-                    </div>
                     <div class="rating">
                         <span class="stars">★★★★★</span>
                         <span>(4.9 - 120 avis)</span>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 13, 2025 at 01:59 PM
+-- Generation Time: Jun 16, 2025 at 11:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -116,24 +116,6 @@ INSERT INTO `appointments` (`id`, `user_id`, `patient_id`, `base_service_id`, `d
 -- --------------------------------------------------------
 
 --
--- Table structure for table `appointment_logs`
---
-
-CREATE TABLE `appointment_logs` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this log',
-  `appointment_id` int(11) NOT NULL,
-  `scheduled_time` time NOT NULL,
-  `actual_start_time` time DEFAULT NULL,
-  `actual_end_time` time DEFAULT NULL,
-  `wait_time` int(11) DEFAULT NULL,
-  `log_date` date NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `base_services`
 --
 
@@ -236,7 +218,7 @@ CREATE TABLE `invoices` (
   `invoice_number` varchar(50) NOT NULL,
   `description` varchar(255) NOT NULL,
   `quantity` int(11) DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL,
+  `unit_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `subtotal` decimal(10,2) NOT NULL,
   `tax_amount` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
@@ -359,34 +341,19 @@ CREATE TABLE `settings` (
   `other_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`other_settings`)),
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `automation_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`automation_settings`))
+  `automation_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`automation_settings`)),
+  `smtp_settings` text DEFAULT NULL,
+  `sms_provider_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`sms_provider_settings`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `settings`
 --
 
-INSERT INTO `settings` (`id`, `user_id`, `clinic_name`, `clinic_address`, `clinic_phone`, `clinic_email`, `clinic_website`, `clinic_logo_url`, `clinic_description`, `working_hours`, `other_settings`, `created_at`, `updated_at`, `automation_settings`) VALUES
-(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43', NULL),
-(2, 5, 'Dr Mohammed Salmi', '45 RUE MELOUIA TADAOUT', '0631318173', 'its.aitbenalla.hichame@gmail.com', '', '', '', '{\"monday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"tuesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"wednesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"thursday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"friday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"saturday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"sunday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false}}', NULL, '2025-06-13 09:44:13', '2025-06-13 09:44:34', '{\"sms_reminders_enabled\":true,\"sms_reminder_time\":\"24\",\"sms_provider\":\"twilio\",\"sms_sender_name\":\"\",\"sms_api_key\":\"\",\"email_notifications_enabled\":true,\"email_appointment_confirmation\":true,\"email_appointment_reminder\":true,\"email_payment_receipt\":true,\"email_treatment_summary\":true,\"email_custom_template\":false,\"chatbot_enabled\":false}');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `sms_logs`
---
-
-CREATE TABLE `sms_logs` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this SMS log',
-  `patient_id` int(11) NOT NULL,
-  `appointment_id` int(11) DEFAULT NULL,
-  `phone_number` varchar(20) NOT NULL,
-  `message` text NOT NULL,
-  `status` enum('pending','sent','delivered','failed') DEFAULT 'pending',
-  `sent_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO `settings` (`id`, `user_id`, `clinic_name`, `clinic_address`, `clinic_phone`, `clinic_email`, `clinic_website`, `clinic_logo_url`, `clinic_description`, `working_hours`, `other_settings`, `created_at`, `updated_at`, `automation_settings`, `smtp_settings`, `sms_provider_settings`) VALUES
+(1, 2, 'SmileDesk Demo Clinic', '123 Dental Street, Casablanca, Morocco', '+212-522-123456', 'info@smiledesk-demo.com', NULL, NULL, NULL, NULL, NULL, '2025-06-08 19:00:43', '2025-06-08 19:00:43', NULL, NULL, NULL),
+(2, 5, 'Dr Mohammed Salmi', '45 RUE MELOUIA TADAOUT', '0631318173', 'its.aitbenalla.hichame@gmail.com', '', '', '', '{\"monday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"tuesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"wednesday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"thursday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"friday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"saturday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false},\"sunday\":{\"open\":\"09:00\",\"close\":\"17:00\",\"closed\":false}}', NULL, '2025-06-13 09:44:13', '2025-06-16 08:47:31', '{\"send_email_enabled\":true,\"send_sms_enabled\":true,\"send_whatsapp_enabled\":true,\"receive_email_enabled\":false,\"receive_sms_enabled\":false,\"receive_whatsapp_enabled\":false,\"sms_reminder_time\":\"24\",\"email_notifications_enabled\":false,\"email_appointment_confirmation\":false,\"email_appointment_reminder\":false,\"email_payment_receipt\":false,\"email_treatment_summary\":false,\"email_custom_template\":false}', NULL, NULL),
+(3, 4, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-06-16 08:35:26', '2025-06-16 08:36:00', NULL, '{\"host\":\"smtp.hostinger.com\",\"port\":\"587\",\"username\":\"SmileDesk\",\"password\":\"Diplo@3334\",\"encryption\":\"tls\"}', '{\"provider\":\"twilio\",\"twilio_account_sid\":\"AA132423245RZER45\",\"twilio_auth_token\":\"JTOIAZIREAZR923583285J2RFJEJO42RTO42GJ4O\",\"twilio_from_number\":\"+2125600012\"}');
 
 -- --------------------------------------------------------
 
@@ -406,6 +373,13 @@ CREATE TABLE `subscriptions` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `subscriptions`
+--
+
+INSERT INTO `subscriptions` (`id`, `user_id`, `plan_id`, `start_date`, `end_date`, `status`, `payment_method`, `transaction_id`, `created_at`, `updated_at`) VALUES
+(1, 5, 1, '2025-06-16', '2025-07-16', 'active', 'stripe', 'pi_3RaYhrRuYmOMaUOh1n2MwO9M', '2025-06-16 08:49:08', '2025-06-16 08:49:08');
 
 -- --------------------------------------------------------
 
@@ -464,8 +438,8 @@ INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `role
 (1, 'admin@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Admin', 'User', 'admin', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:30', NULL),
 (2, 'dr.smith@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'John', 'Smith', 'dentist', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:27', NULL),
 (3, 'assistant@smiledesk.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Sarah', 'Johnson', 'assistant', NULL, NULL, NULL, NULL, 'active', NULL, '2025-06-08 19:00:43', '2025-06-08 19:13:23', NULL),
-(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, NULL, 'active', '2025-06-10 22:29:37', '2025-06-08 19:06:29', '2025-06-10 22:29:37', NULL),
-(5, 'its.aitbenalla.hichame@gmail.com', '$2y$10$KgGCY/eyN8milJhczZoIWO.JOi7d.mTr8L/R.9/qqnsLDP.MCWSh.', 'Hichame', 'Ait benalla', 'dentist', NULL, '45 RUE MELOUIA TADAOUT\nMidelt, 93150', NULL, NULL, 'active', NULL, '2025-06-13 09:36:59', '2025-06-13 09:37:15', NULL);
+(4, 'its.mediplo0aer@gmail.com', '$2y$10$Hg6/aBhuYKAaUxh06HN68eoPH0wQ7lwjaWE06v8X78MGN6UWxfsl.', 'Itsme', 'Diplo', 'admin', '8568748423', NULL, NULL, NULL, 'active', '2025-06-16 08:49:32', '2025-06-08 19:06:29', '2025-06-16 08:49:32', NULL),
+(5, 'its.aitbenalla.hichame@gmail.com', '$2y$10$KgGCY/eyN8milJhczZoIWO.JOi7d.mTr8L/R.9/qqnsLDP.MCWSh.', 'Hichame Ait benalla', 'Ait benalla', 'dentist', NULL, '45 RUE MELOUIA TADAOUT\nMidelt, 93150', NULL, NULL, 'active', '2025-06-16 08:45:39', '2025-06-13 09:36:59', '2025-06-16 08:49:07', NULL);
 
 --
 -- Indexes for dumped tables
@@ -487,14 +461,6 @@ ALTER TABLE `appointments`
   ADD KEY `patient_id` (`patient_id`),
   ADD KEY `service_id` (`base_service_id`),
   ADD KEY `dentist_id` (`dentist_id`);
-
---
--- Indexes for table `appointment_logs`
---
-ALTER TABLE `appointment_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `appointment_id` (`appointment_id`);
 
 --
 -- Indexes for table `base_services`
@@ -563,15 +529,6 @@ ALTER TABLE `settings`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indexes for table `sms_logs`
---
-ALTER TABLE `sms_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `patient_id` (`patient_id`),
-  ADD KEY `appointment_id` (`appointment_id`);
-
---
 -- Indexes for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -607,12 +564,6 @@ ALTER TABLE `activities`
 --
 ALTER TABLE `appointments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `appointment_logs`
---
-ALTER TABLE `appointment_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `base_services`
@@ -660,19 +611,13 @@ ALTER TABLE `service_categories`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `sms_logs`
---
-ALTER TABLE `sms_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `subscription_plans`
@@ -704,13 +649,6 @@ ALTER TABLE `appointments`
   ADD CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`base_service_id`) REFERENCES `base_services` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `appointments_ibfk_4` FOREIGN KEY (`dentist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `appointment_logs`
---
-ALTER TABLE `appointment_logs`
-  ADD CONSTRAINT `appointment_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `appointment_logs_ibfk_2` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `base_services`
@@ -769,14 +707,6 @@ ALTER TABLE `settings`
   ADD CONSTRAINT `settings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `sms_logs`
---
-ALTER TABLE `sms_logs`
-  ADD CONSTRAINT `sms_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `sms_logs_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `sms_logs_ibfk_3` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE SET NULL;
-
---
 -- Constraints for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -788,7 +718,3 @@ ALTER TABLE `subscriptions`
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`clinic_id`) REFERENCES `settings` (`id`) ON DELETE SET NULL;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

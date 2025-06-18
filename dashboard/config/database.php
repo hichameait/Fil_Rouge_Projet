@@ -16,7 +16,7 @@ class Database {
     private $host = 'localhost';
     private $dbname = 'smiledesk';
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     private $pdo;
 
     public function __construct() {
@@ -69,21 +69,21 @@ function fetchOne($query, $params = []) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-$query = "
-CREATE TABLE IF NOT EXISTS `appointment_logs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this log',
-  `appointment_id` int(11) NOT NULL,
-  `scheduled_time` time NOT NULL,
-  `actual_start_time` time DEFAULT NULL,
-  `actual_end_time` time DEFAULT NULL,
-  `wait_time` int(11) DEFAULT NULL,
-  `log_date` date NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `appointment_id` (`appointment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-";
-executeQuery($query);
+// $query = "
+// CREATE TABLE IF NOT EXISTS `appointment_logs` (
+//   `id` int(11) NOT NULL AUTO_INCREMENT,
+//   `user_id` int(11) NOT NULL COMMENT 'Dentist who owns this log',
+//   `appointment_id` int(11) NOT NULL,
+//   `scheduled_time` time NOT NULL,
+//   `actual_start_time` time DEFAULT NULL,
+//   `actual_end_time` time DEFAULT NULL,
+//   `wait_time` int(11) DEFAULT NULL,
+//   `log_date` date NOT NULL,
+//   `created_at` timestamp NULL DEFAULT current_timestamp(),
+//   PRIMARY KEY (`id`),
+//   KEY `user_id` (`user_id`),
+//   KEY `appointment_id` (`appointment_id`)
+// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+// ";
+// executeQuery($query);
 ?>

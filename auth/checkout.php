@@ -32,7 +32,6 @@ $plan = fetchOne("SELECT * FROM subscription_plans WHERE id = ? AND is_active = 
 if (!$plan) {
     die('Invalid plan selected.');
 }
-// Add these lines to get plan name and price
 $plan_name = $plan['name'];
 $plan_price = $plan['price'];
 

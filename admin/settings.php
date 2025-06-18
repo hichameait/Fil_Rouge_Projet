@@ -4,20 +4,24 @@ require_once '../dashboard/config/database.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /login.php');
+    header('Location: ../auth/login.php');
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch settings for this admin (if any)
 $settings = $pdo->query("SELECT * FROM settings WHERE user_id = $user_id")->fetch(PDO::FETCH_ASSOC);
+if (!$settings) {
+    // Insert for the admin
+    $stmt = $pdo->prepare("INSERT INTO settings (user_id, clinic_name) VALUES (?, ?)");
+    $stmt->execute([$user_id, '']);
+    $settings = $pdo->query("SELECT * FROM settings WHERE user_id = $user_id")->fetch(PDO::FETCH_ASSOC);
+}
 
-// Fetch global SMTP and SMS settings
-$global_settings = $pdo->query("SELECT * FROM global_settings LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-$smtp = json_decode($global_settings['smtp_settings'] ?? '{}', true);
-$sms_settings = json_decode($global_settings['sms_provider_settings'] ?? '{}', true);
+$smtp = json_decode($settings['smtp_settings'] ?? '{}', true);
+$sms_settings = json_decode($settings['sms_provider_settings'] ?? '{}', true);
 
 $success_message = $error_message = '';
 
@@ -33,13 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'encryption' => $_POST['smtp_encryption'] ?? 'tls'
             ]);
             $stmt = $pdo->prepare("
-                INSERT INTO global_settings (smtp_settings) VALUES (?)
-                ON DUPLICATE KEY UPDATE smtp_settings = VALUES(smtp_settings)
+                UPDATE settings SET smtp_settings = ? WHERE user_id = ?
             ");
-            $stmt->execute([$smtp_settings]);
+            $stmt->execute([$smtp_settings, $user_id]);
             $success_message = "SMTP settings updated successfully!";
-            $global_settings = $pdo->query("SELECT * FROM global_settings LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-            $smtp = json_decode($global_settings['smtp_settings'] ?? '{}', true);
+            $settings = $pdo->query("SELECT * FROM settings WHERE user_id = $user_id")->fetch(PDO::FETCH_ASSOC);
+            $smtp = json_decode($settings['smtp_settings'] ?? '{}', true);
         } catch (Exception $e) {
             $error_message = "Error updating SMTP settings: " . $e->getMessage();
         }
@@ -49,32 +52,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $sms = $_POST['sms'] ?? [];
             $provider = $sms['provider'] ?? 'twilio';
-            $sms_settings = ['provider' => $provider];
+            $sms_settings_arr = ['provider' => $provider];
             // Save only the relevant fields for the selected provider
             if ($provider === 'twilio') {
-                $sms_settings['twilio_account_sid'] = $sms['twilio_account_sid'] ?? '';
-                $sms_settings['twilio_auth_token'] = $sms['twilio_auth_token'] ?? '';
-                $sms_settings['twilio_from_number'] = $sms['twilio_from_number'] ?? '';
+                $sms_settings_arr['twilio_account_sid'] = $sms['twilio_account_sid'] ?? '';
+                $sms_settings_arr['twilio_auth_token'] = $sms['twilio_auth_token'] ?? '';
+                $sms_settings_arr['twilio_from_number'] = $sms['twilio_from_number'] ?? '';
             } elseif ($provider === 'vonage') {
-                $sms_settings['vonage_api_key'] = $sms['vonage_api_key'] ?? '';
-                $sms_settings['vonage_api_secret'] = $sms['vonage_api_secret'] ?? '';
-                $sms_settings['vonage_from'] = $sms['vonage_from'] ?? '';
+                $sms_settings_arr['vonage_api_key'] = $sms['vonage_api_key'] ?? '';
+                $sms_settings_arr['vonage_api_secret'] = $sms['vonage_api_secret'] ?? '';
+                $sms_settings_arr['vonage_from'] = $sms['vonage_from'] ?? '';
             } elseif ($provider === 'messagebird') {
-                $sms_settings['messagebird_api_key'] = $sms['messagebird_api_key'] ?? '';
-                $sms_settings['messagebird_originator'] = $sms['messagebird_originator'] ?? '';
+                $sms_settings_arr['messagebird_api_key'] = $sms['messagebird_api_key'] ?? '';
+                $sms_settings_arr['messagebird_originator'] = $sms['messagebird_originator'] ?? '';
             } elseif ($provider === 'clicksend') {
-                $sms_settings['clicksend_username'] = $sms['clicksend_username'] ?? '';
-                $sms_settings['clicksend_api_key'] = $sms['clicksend_api_key'] ?? '';
-                $sms_settings['clicksend_from'] = $sms['clicksend_from'] ?? '';
+                $sms_settings_arr['clicksend_username'] = $sms['clicksend_username'] ?? '';
+                $sms_settings_arr['clicksend_api_key'] = $sms['clicksend_api_key'] ?? '';
+                $sms_settings_arr['clicksend_from'] = $sms['clicksend_from'] ?? '';
             }
             $stmt = $pdo->prepare("
-                INSERT INTO global_settings (sms_provider_settings) VALUES (?)
-                ON DUPLICATE KEY UPDATE sms_provider_settings = VALUES(sms_provider_settings)
+                UPDATE settings SET sms_provider_settings = ? WHERE user_id = ?
             ");
-            $stmt->execute([json_encode($sms_settings)]);
+            $stmt->execute([json_encode($sms_settings_arr), $user_id]);
             $success_message = "SMS provider settings updated successfully!";
-            $global_settings = $pdo->query("SELECT * FROM global_settings LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-            $sms_settings = json_decode($global_settings['sms_provider_settings'] ?? '{}', true);
+            $settings = $pdo->query("SELECT * FROM settings WHERE user_id = $user_id")->fetch(PDO::FETCH_ASSOC);
+            $sms_settings = json_decode($settings['sms_provider_settings'] ?? '{}', true);
         } catch (Exception $e) {
             $error_message = "Error updating SMS provider settings: " . $e->getMessage();
         }
