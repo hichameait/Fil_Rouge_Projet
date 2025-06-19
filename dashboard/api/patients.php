@@ -201,11 +201,31 @@ function handleDeletePatient() {
 
 function generatePatientNumber($user_id) {
     global $pdo;
-    
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM patients WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $count = $stmt->fetch()['count'];
-    
-    return 'P' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+    // Use date_of_birth from POST data if available
+    $dob = $_POST['date_of_birth'] ?? '';
+    if ($dob && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+        $dob_part = date('dmY', strtotime($dob));
+    } else {
+        $dob_part = date('dmY');
+    }
+
+    // Generate a random 3-digit number
+    $random = mt_rand(100, 999);
+
+    // Compose patient number: P + user_id + dob_part + random
+    $patient_number = 'P' . $user_id . $dob_part . $random;
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM patients WHERE patient_number = ?");
+    while (true) {
+        $stmt->execute([$patient_number]);
+        if ($stmt->fetchColumn() == 0) {
+            break;
+        }
+        $random = mt_rand(100, 999);
+        $patient_number = 'P' . $user_id . $dob_part . $random;
+    }
+
+    return $patient_number;
 }
 ?>

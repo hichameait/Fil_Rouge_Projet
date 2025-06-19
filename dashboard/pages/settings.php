@@ -112,6 +112,7 @@ function updateClinicInfo() {
                 'closed' => isset($_POST[$day . '_closed'])
             ];
         }
+
         $stmt = $pdo->prepare("
             UPDATE settings SET 
                 clinic_name = ?, clinic_address = ?, clinic_phone = ?, clinic_email = ?, clinic_website = ?,
@@ -158,6 +159,29 @@ function updateClinicInfo() {
                 json_encode($languages),
                 $user_id
             ]);
+        }
+
+        // Automatically generate and update the website URL if not set or empty
+        $stmt = $pdo->prepare("SELECT clinic_website FROM settings WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $current_website = $stmt->fetchColumn();
+
+        if (empty($current_website)) {
+            // Build the website URL with the correct folder path
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            // Get the base path up to /Fil_Rouge_Projet
+            $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+            $basePath = '';
+            if (preg_match('#/(Fil_Rouge_Projet)(/|$)#', $scriptDir, $matches, PREG_OFFSET_CAPTURE)) {
+                $basePath = substr($scriptDir, 0, $matches[0][1] + strlen($matches[1][0]));
+            }
+            $basePath = rtrim($basePath, '/');
+            $profileUrl = $protocol . $host . $basePath . '/profile.php?id=' . $user_id;
+
+            // Update the settings with the generated website
+            $stmt = $pdo->prepare("UPDATE settings SET clinic_website = ? WHERE user_id = ?");
+            $stmt->execute([$profileUrl, $user_id]);
         }
 
         $success_message = "Settings updated successfully!";
@@ -450,7 +474,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                     </div>
                     <div>
                         <label for="clinic_logo_url" class="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                        <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
+                        <input type="" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <div class="mt-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Ou téléchargez un logo</label>

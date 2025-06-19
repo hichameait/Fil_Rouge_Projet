@@ -807,7 +807,7 @@ function calculateInvoiceTotal() {
 
     const totalSpan = row.querySelector(".item-total")
     if (totalSpan) {
-      totalSpan.textContent = `$${itemTotal.toFixed(2)}`
+      totalSpan.textContent = `${itemTotal.toFixed(2)}`
     }
 
     subtotal += itemTotal
