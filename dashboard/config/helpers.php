@@ -1,25 +1,13 @@
 <?php
-if (!defined('VALID_ACTIVITY_TYPES')) {
-    define('VALID_ACTIVITY_TYPES', [
-        'appointment_scheduled',
-        'appointment_updated',
-        'appointment_cancelled',
-        'patient_added',
-        'patient_updated',
-        'patient_deleted',
-        'payment_received',
-        'document_uploaded',
-        'document_deleted'
-    ]);
-}
+require_once __DIR__ . '/constants.php';
 
 if (!function_exists('logActivity')) {
     function logActivity($pdo, $user_id, $type, $title, $description) {
-        if (!in_array($type, VALID_ACTIVITY_TYPES)) {
+        $valid_types = defined('VALID_ACTIVITY_TYPES') ? VALID_ACTIVITY_TYPES : [];
+        if (!in_array($type, $valid_types)) {
             error_log("Invalid activity type: $type");
             return false;
         }
-        
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO activities (user_id, type, title, description, created_at)
@@ -33,7 +21,6 @@ if (!function_exists('logActivity')) {
     }
 }
 
-// Add other helper functions with existence checks
 if (!function_exists('sanitizeInput')) {
     function sanitizeInput($data) {
         return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
