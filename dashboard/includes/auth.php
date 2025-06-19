@@ -1,5 +1,4 @@
 <?php
-// Make sure there is no whitespace or output before this file's opening <?php tag
 
 function isLoggedIn() {
     // Check if user is logged in
@@ -47,12 +46,10 @@ function login($email, $password) {
             $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name'] = $user['last_name'];
-            $_SESSION['user_status'] = $user['status']; // Make sure this matches DB field
+            $_SESSION['user_status'] = $user['status'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['is_logged'] = true;
-            // Optionally set payment_completed if needed
             // $_SESSION['payment_completed'] = true;
-            // Update last login
             $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $stmt->execute([$user['id']]);
             
@@ -66,9 +63,7 @@ function login($email, $password) {
 
 function logout() {
     if (session_status() === PHP_SESSION_ACTIVE) {
-        // Remove all session variables
         $_SESSION = [];
-        // Destroy the session cookie if it exists
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', time() - 42000,
