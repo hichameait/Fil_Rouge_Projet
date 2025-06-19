@@ -134,8 +134,8 @@ function handlePost($pdo) {
         $stmt = $pdo->prepare("
             INSERT INTO appointments (
                 user_id, patient_id, base_service_id, dentist_id, appointment_date, 
-                appointment_time, duration, selected_teeth, notes, status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', NOW())
+                appointment_time, duration, notes, status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', NOW())
         ");
         $stmt->execute([
             $user_id,
@@ -145,7 +145,6 @@ function handlePost($pdo) {
             $_POST['appointment_date'],
             $_POST['appointment_time'],
             $service['duration'],
-            $_POST['selected_teeth'] ?? null,
             $_POST['notes'] ?? ''
         ]);
         $appointment_id = $pdo->lastInsertId();
@@ -195,7 +194,7 @@ function handlePut($pdo) {
         // Build update query
         $fields = [];
         $params = [];
-        $allowed_fields = ['appointment_date', 'appointment_time', 'status', 'notes', 'selected_teeth'];
+        $allowed_fields = ['appointment_date', 'appointment_time', 'status', 'notes'];
         foreach ($allowed_fields as $field) {
             if (isset($input[$field])) {
                 $fields[] = "$field = ?";

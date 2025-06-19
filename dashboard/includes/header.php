@@ -4,16 +4,16 @@
             <h1 class="text-2xl font-bold text-gray-900">
                 <?php
                 $page_titles = [
-                    'dashboard' => 'Dashboard',
-                    'patients' => 'Patient Management',
-                    'appointments' => 'Appointment Management',
-                    'invoices' => 'Invoice Management',
-                    'analytics' => 'Analytics & Reports',
-                    'documents' => 'Document Management',
-                    'services' => 'Services Catalog',
-                    'settings' => 'Settings'
+                    'dashboard' => 'Tableau de bord',
+                    'patients' => 'Gestion des patients',
+                    'appointments' => 'Gestion des rendez-vous',
+                    'invoices' => 'Gestion des factures',
+                    'analytics' => 'Analyses & Rapports',
+                    'documents' => 'Gestion des documents',
+                    'services' => 'Catalogue des services',
+                    'settings' => 'Paramètres'
                 ];
-                echo $page_titles[$current_page] ?? 'SmileDesk Dashboard';
+                echo $page_titles[$current_page] ?? 'SmileDesk Tableau de bord';
                 ?>
             </h1>
         </div>
@@ -30,7 +30,7 @@
             <!-- New Appointment Button -->
             <button id="newAppointmentBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
                 <i class="fas fa-plus mr-2"></i>
-                New Appointment
+                Nouveau rendez-vous
             </button>
         </div>
     </div>

@@ -62,12 +62,12 @@ if (!empty($date_filter)) {
 <div class="container p-6">
     <div class="space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-3xl font-bold tracking-tight">Appointments</h1>
+            <h1 class="text-3xl font-bold tracking-tight">Rendez-vous</h1>
             <button id="newAppointmentBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                New Appointment
+                Nouveau rendez-vous
             </button>
         </div>
 
@@ -81,15 +81,15 @@ if (!empty($date_filter)) {
                         class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                     <select id="status" name="status" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Status</option>
-                        <option value="scheduled" <?= $status_filter === 'scheduled' ? 'selected' : '' ?>>Scheduled</option>
-                        <option value="confirmed" <?= $status_filter === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
-                        <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
-                        <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed</option>
-                        <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
-                        <option value="no_show" <?= $status_filter === 'no_show' ? 'selected' : '' ?>>No Show</option>
+                        <option value="">Tous les statuts</option>
+                        <option value="scheduled" <?= $status_filter === 'scheduled' ? 'selected' : '' ?>>Planifié</option>
+                        <option value="confirmed" <?= $status_filter === 'confirmed' ? 'selected' : '' ?>>Confirmé</option>
+                        <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>En cours</option>
+                        <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Terminé</option>
+                        <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Annulé</option>
+                        <option value="no_show" <?= $status_filter === 'no_show' ? 'selected' : '' ?>>Absent</option>
                     </select>
                 </div>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
@@ -97,7 +97,7 @@ if (!empty($date_filter)) {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
                     </svg>
-                    Filter
+                    Filtrer
                 </button>
             </form>
         </div>
@@ -147,9 +147,9 @@ if (!empty($date_filter)) {
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">
                     <?php if (!empty($date_filter)): ?>
-                        Appointments for <?= date('F j, Y', strtotime($date_filter)) ?>
+                        Rendez-vous pour le <?= date('d/m/Y', strtotime($date_filter)) ?>
                     <?php else: ?>
-                        All Appointments
+                        Tous les rendez-vous
                     <?php endif; ?>
                 </h3>
             </div>
@@ -158,13 +158,13 @@ if (!empty($date_filter)) {
                     <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto text-gray-300 mb-4" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
-                    <p class="text-gray-500 mb-4">No appointments scheduled for this date.</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun rendez-vous trouvé</h3>
+                    <p class="text-gray-500 mb-4">Aucun rendez-vous planifié pour cette date.</p>
                     <button id="scheduleFirstBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center mx-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Schedule Appointment
+                        Planifier un rendez-vous
                     </button>
                 </div>
             <?php else: ?>
@@ -231,14 +231,14 @@ if (!empty($date_filter)) {
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Confirm
+                                                Confirmer
                                             </button>
                                             <button class="start-appointment-btn bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700" 
                                                     data-id="<?= $appointment['id'] ?>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Start
+                                                Démarrer
                                             </button>
                                         <?php elseif ($appointment['status'] === 'confirmed'): ?>
                                             <button class="start-appointment-btn bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700" 
@@ -246,7 +246,7 @@ if (!empty($date_filter)) {
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Start
+                                                Démarrer
                                             </button>
                                         <?php elseif ($appointment['status'] === 'in_progress'): ?>
                                             <button class="complete-appointment-btn bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700" 
@@ -254,7 +254,7 @@ if (!empty($date_filter)) {
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Complete
+                                                Terminer
                                             </button>
                                         <?php endif; ?>
                                         <button class="reschedule-appointment-btn text-blue-600 hover:text-blue-800 px-3 py-1 border border-blue-600 rounded text-sm flex items-center" 
@@ -262,7 +262,7 @@ if (!empty($date_filter)) {
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                            Reschedule
+                                            Reprogrammer
                                         </button>
                                         <div class="relative">
                                             <button class="appointment-menu-btn text-gray-600 hover:text-gray-800 px-2 py-1" 
@@ -276,32 +276,32 @@ if (!empty($date_filter)) {
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2 2a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                     </svg>
-                                                    View Details
+                                                    Voir les détails
                                                 </a>
                                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 edit-appointment-btn" data-action="edit" data-id="<?= $appointment['id'] ?>">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" />
                                                     </svg>
-                                                    Edit
+                                                    Modifier
                                                 </a>
                                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="call">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm10-10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                                     </svg>
-                                                    Call Patient
+                                                    Appeler le patient
                                                 </a>
                                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-action="sms">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m-2 8a9 9 0 110-18 9 9 0 010 18z" />
                                                     </svg>
-                                                    Send SMS
+                                                    Envoyer un SMS
                                                 </a>
                                                 <div class="border-t border-gray-100"></div>
                                                 <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50" data-action="cancel">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                     </svg>
-                                                    Cancel
+                                                    Annuler
                                                 </a>
                                             </div>
                                         </div>

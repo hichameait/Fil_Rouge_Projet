@@ -55,7 +55,7 @@ $total_pages = ceil($total_patients / $per_page);
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add New Patient
+            Ajouter un patient
         </button>
     </div>
 
@@ -64,22 +64,22 @@ $total_pages = ceil($total_patients / $per_page);
         <form method="GET" class="flex flex-wrap gap-4 items-end">
             <input type="hidden" name="page" value="patients">
             <div class="flex-1 min-w-64">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Patients</label>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Rechercher des patients</label>
                 <div class="relative">
                     <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <input type="text" id="search" name="search" value="<?= htmlspecialchars($search) ?>"
                         class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Search by name, email, phone, or patient number...">
+                        placeholder="Recherche par nom, email, téléphone ou numéro de patient...">
                 </div>
             </div>
             <div>
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                 <select id="status" name="status" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">All Status</option>
-                    <option value="active" <?= $status_filter === 'active' ? 'selected' : '' ?>>Active</option>
-                    <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                    <option value="">Tous les statuts</option>
+                    <option value="active" <?= $status_filter === 'active' ? 'selected' : '' ?>>Actif</option>
+                    <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactif</option>
                 </select>
             </div>
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
@@ -87,13 +87,13 @@ $total_pages = ceil($total_patients / $per_page);
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                 </svg>
-                Filter
+                Filtrer
             </button>
             <a href="index.php?page=patients" class="text-gray-600 hover:text-gray-800 px-3 py-2 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Clear
+                Réinitialiser
             </a>
         </form>
     </div>
@@ -102,7 +102,7 @@ $total_pages = ceil($total_patients / $per_page);
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">
-                Patients (<?= number_format($total_patients) ?> total)
+                Patients (<?= number_format($total_patients) ?> au total)
             </h3>
         </div>
         <?php if (empty($patients)): ?>
@@ -110,13 +110,13 @@ $total_pages = ceil($total_patients / $per_page);
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto text-gray-300 mb-4" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No patients found</h3>
-                <p class="text-gray-500 mb-4">Get started by adding your first patient.</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun patient trouvé</h3>
+                <p class="text-gray-500 mb-4">Commencez par ajouter votre premier patient.</p>
                 <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center mx-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Patient
+                    Ajouter un patient
                 </button>
             </div>
         <?php else: ?>
@@ -126,9 +126,9 @@ $total_pages = ceil($total_patients / $per_page);
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointments</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rendez-vous</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière visite</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -158,18 +158,18 @@ $total_pages = ceil($total_patients / $per_page);
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        Total: <?= $patient['total_appointments'] ?>
+                                        Total : <?= $patient['total_appointments'] ?>
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        Completed: <?= $patient['completed_appointments'] ?>
+                                        Terminés : <?= $patient['completed_appointments'] ?>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?= $patient['last_visit'] ? date('M j, Y', strtotime($patient['last_visit'])) : 'Never' ?>
+                                    <?= $patient['last_visit'] ? date('d/m/Y', strtotime($patient['last_visit'])) : 'Jamais' ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $patient['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                        <?= ucfirst($patient['status']) ?>
+                                        <?= $patient['status'] === 'active' ? 'Actif' : 'Inactif' ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -210,22 +210,22 @@ $total_pages = ceil($total_patients / $per_page);
                         <?php if ($page > 1): ?>
                             <a href="?page=patients&p=<?= $page - 1 ?>&search=<?= urlencode($search) ?>&status=<?= urlencode($status_filter) ?>" 
                                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                Previous
+                                Précédent
                             </a>
                         <?php endif; ?>
                         <?php if ($page < $total_pages): ?>
                             <a href="?page=patients&p=<?= $page + 1 ?>&search=<?= urlencode($search) ?>&status=<?= urlencode($status_filter) ?>" 
                                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                Next
+                                Suivant
                             </a>
                         <?php endif; ?>
                     </div>
                     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm text-gray-700">
-                                Showing <span class="font-medium"><?= $offset + 1 ?></span> to 
-                                <span class="font-medium"><?= min($offset + $per_page, $total_patients) ?></span> of 
-                                <span class="font-medium"><?= $total_patients ?></span> results
+                                Affichage de <span class="font-medium"><?= $offset + 1 ?></span> à 
+                                <span class="font-medium"><?= min($offset + $per_page, $total_patients) ?></span> sur 
+                                <span class="font-medium"><?= $total_patients ?></span> résultats
                             </p>
                         </div>
                         <div>

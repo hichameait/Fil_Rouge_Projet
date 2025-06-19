@@ -112,6 +112,7 @@ function updateClinicInfo() {
                 'closed' => isset($_POST[$day . '_closed'])
             ];
         }
+
         $stmt = $pdo->prepare("
             UPDATE settings SET 
                 clinic_name = ?, clinic_address = ?, clinic_phone = ?, clinic_email = ?, clinic_website = ?,
@@ -158,6 +159,29 @@ function updateClinicInfo() {
                 json_encode($languages),
                 $user_id
             ]);
+        }
+
+        // Automatically generate and update the website URL if not set or empty
+        $stmt = $pdo->prepare("SELECT clinic_website FROM settings WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $current_website = $stmt->fetchColumn();
+
+        if (empty($current_website)) {
+            // Build the website URL with the correct folder path
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            // Get the base path up to /Fil_Rouge_Projet
+            $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+            $basePath = '';
+            if (preg_match('#/(Fil_Rouge_Projet)(/|$)#', $scriptDir, $matches, PREG_OFFSET_CAPTURE)) {
+                $basePath = substr($scriptDir, 0, $matches[0][1] + strlen($matches[1][0]));
+            }
+            $basePath = rtrim($basePath, '/');
+            $profileUrl = $protocol . $host . $basePath . '/profile.php?id=' . $user_id;
+
+            // Update the settings with the generated website
+            $stmt = $pdo->prepare("UPDATE settings SET clinic_website = ? WHERE user_id = ?");
+            $stmt->execute([$profileUrl, $user_id]);
         }
 
         $success_message = "Settings updated successfully!";
@@ -450,7 +474,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                     </div>
                     <div>
                         <label for="clinic_logo_url" class="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                        <input type="url" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
+                        <input type="" id="clinic_logo_url" name="clinic_logo_url" value="<?= htmlspecialchars($settings['clinic_logo_url'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <div class="mt-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Ou téléchargez un logo</label>
@@ -870,14 +894,14 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
                     
                     <!-- Outgoing Notifications (Send to Patients) -->
                     <div class="mb-8">
-                        <h4 class="text-lg font-medium text-gray-900 mb-4">Patient Communication Preferences</h4>
-                        <p class="text-sm text-gray-600 mb-4">Choose how you want to communicate with your patients</p>
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">Préférences de communication patient</h4>
+                        <p class="text-sm text-gray-600 mb-4">Choisissez comment vous souhaitez communiquer avec vos patients</p>
                         
                         <div class="space-y-4">
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">Email Notifications</label>
-                                    <p class="text-sm text-gray-500">Send appointment confirmations and reminders via email</p>
+                                    <label class="font-medium text-gray-900">Notifications par email</label>
+                                    <p class="text-sm text-gray-500">Envoyer les confirmations et rappels de rendez-vous par email</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[send_email]" class="sr-only peer" 
@@ -888,8 +912,8 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">SMS Notifications</label>
-                                    <p class="text-sm text-gray-500">Send appointment reminders via SMS</p>
+                                    <label class="font-medium text-gray-900">Notifications par SMS</label>
+                                    <p class="text-sm text-gray-500">Envoyer les rappels de rendez-vous par SMS</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[send_sms]" class="sr-only peer"
@@ -900,8 +924,8 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">WhatsApp Notifications</label>
-                                    <p class="text-sm text-gray-500">Send appointment reminders via WhatsApp</p>
+                                    <label class="font-medium text-gray-900">Notifications WhatsApp</label>
+                                    <p class="text-sm text-gray-500">Envoyer les rappels de rendez-vous via WhatsApp</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[send_whatsapp]" class="sr-only peer"
@@ -914,14 +938,14 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                     <!-- Incoming Notifications (Receive as Dentist) -->
                     <div>
-                        <h4 class="text-lg font-medium text-gray-900 mb-4">Your Notification Preferences</h4>
-                        <p class="text-sm text-gray-600 mb-4">Choose how you want to receive notifications</p>
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">Vos préférences de notification</h4>
+                        <p class="text-sm text-gray-600 mb-4">Choisissez comment vous souhaitez recevoir les notifications</p>
 
                         <div class="space-y-4">
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">Receive Email Notifications</label>
-                                    <p class="text-sm text-gray-500">Get notified about new appointments, cancellations, and updates</p>
+                                    <label class="font-medium text-gray-900">Recevoir les notifications par email</label>
+                                    <p class="text-sm text-gray-500">Recevez une notification pour les nouveaux rendez-vous, annulations et mises à jour</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[receive_email]" class="sr-only peer"
@@ -932,8 +956,8 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">Receive SMS Notifications</label>
-                                    <p class="text-sm text-gray-500">Get SMS alerts for urgent updates and changes</p>
+                                    <label class="font-medium text-gray-900">Recevoir les notifications par SMS</label>
+                                    <p class="text-sm text-gray-500">Recevez des alertes SMS pour les mises à jour urgentes et les changements</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[receive_sms]" class="sr-only peer"
@@ -944,8 +968,8 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                             <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                                 <div>
-                                    <label class="font-medium text-gray-900">Receive WhatsApp Notifications</label>
-                                    <p class="text-sm text-gray-500">Get instant WhatsApp messages for important updates</p>
+                                    <label class="font-medium text-gray-900">Recevoir les notifications WhatsApp</label>
+                                    <p class="text-sm text-gray-500">Recevez des messages WhatsApp instantanés pour les mises à jour importantes</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notifications[receive_whatsapp]" class="sr-only peer"
@@ -958,7 +982,7 @@ $automation_settings = array_merge($default_automation_settings, $automation_set
 
                     <div class="pt-4">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                            Save Notification Preferences
+                            Enregistrer les préférences de notification
                         </button>
                     </div>
                 </form>

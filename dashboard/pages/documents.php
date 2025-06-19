@@ -66,7 +66,7 @@ $stats = fetchOne(
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                 </svg>
-                Upload Document
+                Ajouter un document
             </button>
         </div>
 
@@ -77,7 +77,7 @@ $stats = fetchOne(
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="text-sm font-medium text-gray-600">Total Documents</span>
+                    <span class="text-sm font-medium text-gray-600">Documents totaux</span>
                 </div>
                 <div class="text-2xl font-bold"><?= $stats['total_documents'] ?></div>
             </div>
@@ -86,7 +86,7 @@ $stats = fetchOne(
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
                     </svg>
-                    <span class="text-sm font-medium text-gray-600">X-Rays</span>
+                    <span class="text-sm font-medium text-gray-600">Radiographies</span>
                 </div>
                 <div class="text-2xl font-bold"><?= $stats['xrays'] ?></div>
             </div>
@@ -95,7 +95,7 @@ $stats = fetchOne(
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="text-sm font-medium text-gray-600">Treatment Plans</span>
+                    <span class="text-sm font-medium text-gray-600">Plans de traitement</span>
                 </div>
                 <div class="text-2xl font-bold"><?= $stats['treatment_plans'] ?></div>
             </div>
@@ -104,7 +104,7 @@ $stats = fetchOne(
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="text-sm font-medium text-gray-600">Consent Forms</span>
+                    <span class="text-sm font-medium text-gray-600">Formulaires de consentement</span>
                 </div>
                 <div class="text-2xl font-bold"><?= $stats['consent_forms'] ?></div>
             </div>
@@ -115,32 +115,32 @@ $stats = fetchOne(
             <form method="GET" class="flex flex-wrap gap-4 items-end">
                 <input type="hidden" name="page" value="documents">
                 <div class="flex-1 min-w-64">
-                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
                     <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" id="search" name="search" value="<?= htmlspecialchars($search) ?>"
                             class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Search documents...">
+                            placeholder="Rechercher des documents...">
                     </div>
                 </div>
                 <div>
-                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type de document</label>
                     <select id="type" name="type" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Types</option>
-                        <option value="xray" <?= $type_filter === 'xray' ? 'selected' : '' ?>>X-Ray</option>
-                        <option value="treatment_plan" <?= $type_filter === 'treatment_plan' ? 'selected' : '' ?>>Treatment Plan</option>
-                        <option value="consent_form" <?= $type_filter === 'consent_form' ? 'selected' : '' ?>>Consent Form</option>
-                        <option value="report" <?= $type_filter === 'report' ? 'selected' : '' ?>>Report</option>
-                        <option value="prescription" <?= $type_filter === 'prescription' ? 'selected' : '' ?>>Prescription</option>
-                        <option value="other" <?= $type_filter === 'other' ? 'selected' : '' ?>>Other</option>
+                        <option value="">Tous les types</option>
+                        <option value="xray" <?= $type_filter === 'xray' ? 'selected' : '' ?>>Radiographie</option>
+                        <option value="treatment_plan" <?= $type_filter === 'treatment_plan' ? 'selected' : '' ?>>Plan de traitement</option>
+                        <option value="consent_form" <?= $type_filter === 'consent_form' ? 'selected' : '' ?>>Formulaire de consentement</option>
+                        <option value="report" <?= $type_filter === 'report' ? 'selected' : '' ?>>Rapport</option>
+                        <option value="prescription" <?= $type_filter === 'prescription' ? 'selected' : '' ?>>Ordonnance</option>
+                        <option value="other" <?= $type_filter === 'other' ? 'selected' : '' ?>>Autre</option>
                     </select>
                 </div>
                 <div>
                     <label for="patient" class="block text-sm font-medium text-gray-700 mb-1">Patient</label>
                     <select id="patient" name="patient" class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Patients</option>
+                        <option value="">Tous les patients</option>
                         <?php foreach ($patients as $patient): ?>
                             <option value="<?= $patient['id'] ?>" <?= $patient_filter == $patient['id'] ? 'selected' : '' ?>>
                                 <?= $patient['first_name'] . ' ' . $patient['last_name'] ?>
@@ -153,13 +153,13 @@ $stats = fetchOne(
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
                     </svg>
-                    Filter
+                    Filtrer
                 </button>
                 <a href="index.php?page=documents" class="text-gray-600 hover:text-gray-800 px-3 py-2 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    Clear
+                    Réinitialiser
                 </a>
             </form>
         </div>
@@ -174,8 +174,8 @@ $stats = fetchOne(
                     <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto text-gray-300 mb-4" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2m-6 4h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                     </svg>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                    <p class="text-gray-500 mb-4">Upload your first document to get started.</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun document trouvé</h3>
+                    <p class="text-gray-500 mb-4">Ajoutez votre premier document pour commencer.</p>
                 </div>
             <?php else: ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
@@ -211,7 +211,17 @@ $stats = fetchOne(
                                     </div>
                                     <div class="ml-3">
                                         <span class="text-xs font-medium text-gray-500 uppercase">
-                                            <?= str_replace('_', ' ', $document['type']) ?>
+                                            <?php
+                                            switch ($document['type']) {
+                                                case 'xray': echo 'Radiographie'; break;
+                                                case 'treatment_plan': echo 'Plan de traitement'; break;
+                                                case 'consent_form': echo 'Formulaire de consentement'; break;
+                                                case 'report': echo 'Rapport'; break;
+                                                case 'prescription': echo 'Ordonnance'; break;
+                                                case 'other': echo 'Autre'; break;
+                                                default: echo str_replace('_', ' ', $document['type']);
+                                            }
+                                            ?>
                                         </span>
                                     </div>
                                 </div>
@@ -226,26 +236,26 @@ $stats = fetchOne(
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2 2a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
-                                            View
+                                            Voir
                                         </a>
                                         <a href="#" class="download-document-btn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-id="<?= $document['id'] ?>">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                             </svg>
-                                            Download
+                                            Télécharger
                                         </a>
                                         <a href="#" class="edit-document-btn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-id="<?= $document['id'] ?>">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" />
                                             </svg>
-                                            Edit
+                                            Modifier
                                         </a>
                                         <div class="border-t border-gray-100"></div>
                                         <a href="#" class="delete-document-btn block px-4 py-2 text-sm text-red-600 hover:bg-red-50" data-id="<?= $document['id'] ?>">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
-                                            Delete
+                                            Supprimer
                                         </a>
                                     </div>
                                 </div>
@@ -267,14 +277,14 @@ $stats = fetchOne(
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <?= date('M j, Y', strtotime($document['created_at'])) ?>
+                                    <?= date('d M Y', strtotime($document['created_at'])) ?>
                                 </div>
                                 <?php if ($document['uploaded_by_name']): ?>
                                     <div class="flex items-center text-sm text-gray-500">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16m16-8H4" />
                                         </svg>
-                                        Uploaded by <?= $document['uploaded_by_name'] ?>
+                                        Ajouté par <?= $document['uploaded_by_name'] ?>
                                     </div>
                                 <?php endif; ?>
                                 <?php if ($document['file_size']): ?>
